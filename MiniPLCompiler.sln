@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.32126.315
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MiniPLCompiler", "MiniPLCompiler.csproj", "{095410BB-C55C-42C0-96DC-1FD3CE3B1B0B}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{095410BB-C55C-42C0-96DC-1FD3CE3B1B0B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{095410BB-C55C-42C0-96DC-1FD3CE3B1B0B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{095410BB-C55C-42C0-96DC-1FD3CE3B1B0B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{095410BB-C55C-42C0-96DC-1FD3CE3B1B0B}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {51560B86-AB03-47C9-A343-E41B83176316}
+	EndGlobalSection
+EndGlobal
