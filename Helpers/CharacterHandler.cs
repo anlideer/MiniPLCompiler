@@ -22,7 +22,7 @@ namespace MiniPLCompiler
             if (currentInd < sourceStr.Length)
                 return sourceStr[currentInd];
             else
-                return '\0';
+                return '\0';    // safe to call for many extra times
         }
 
         // return one character back

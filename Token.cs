@@ -6,10 +6,10 @@ namespace MiniPLCompiler
 {
     enum TokenType {
         INT_VAL, STRING_VAL, INT_TYPE, STRING_TYPE, BOOL_TYPE, IDENTIFIER,
-        OPERATOR, UNARY_OPERATOR, VAR, FOOR, END, IN, DO, READ, PRINT, ASSERT,
+        OPERATOR, UNARY_OPERATOR, VAR, FOR, END, IN, DO, READ, PRINT, ASSERT,
         SEMICOLON, // ;
-        COLON, // ,
-        EQUAL, // :=
+        COLON, // :
+        ASSIGN, // :=
         TO, // ..
         LEFT_BRACKET, RIGHT_BRACKET, // ( )
     };

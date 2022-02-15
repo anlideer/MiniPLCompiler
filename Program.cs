@@ -8,7 +8,7 @@ namespace MiniPLCompiler
         static void Main(string[] args)
         {
             Console.WriteLine("Hello World!");
-            CharacterHandler cStream = new CharacterHandler(Path.Join("..", "..", "..", "TestData", "Example1.pas"));
+            Scanner scanner = new Scanner(Path.Join("..", "..", "..", "TestData", "Example1.pas"));
         }
     }
 }
