@@ -9,7 +9,6 @@ namespace MiniPLCompiler
         {
             Console.WriteLine("Hello World!");
             CharacterHandler cStream = new CharacterHandler(Path.Join("..", "..", "..", "TestData", "Example1.pas"));
-
         }
     }
 }
