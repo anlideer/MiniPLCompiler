@@ -12,6 +12,7 @@ namespace MiniPLCompiler
         ASSIGN, // :=
         TO, // ..
         LEFT_BRACKET, RIGHT_BRACKET, // ( )
+        END_OF_PROGRAM,
     };
     class Token
     {
