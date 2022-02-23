@@ -7,7 +7,6 @@ namespace MiniPLCompiler
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Hello World!");
             Scanner scanner = new Scanner(Path.Join("..", "..", "..", "TestData", "Example1.pas"));
             Token t = scanner.PullOneToken();
             while (t.type != TokenType.END_OF_PROGRAM)

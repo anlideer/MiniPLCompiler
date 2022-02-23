@@ -18,6 +18,21 @@ namespace MiniPLCompiler
             { '<', TokenType.OPERATOR}, { '!', TokenType.UNARY_OPERATOR},
             { '(', TokenType.LEFT_BRACKET}, { ')', TokenType.RIGHT_BRACKET},
         };
+        // keywords
+        private Dictionary<string, TokenType> keywords = new Dictionary<string, TokenType>
+        {
+            { "int", TokenType.INT_TYPE},
+            { "string", TokenType.STRING_TYPE},
+            { "bool", TokenType.BOOL_TYPE},
+            { "var", TokenType.VAR},
+            { "for", TokenType.FOR},
+            { "end", TokenType.END},
+            { "in", TokenType.IN},
+            { "do", TokenType.DO},
+            { "read", TokenType.READ},
+            { "print", TokenType.PRINT},
+            { "assert", TokenType.ASSERT},
+        };
         
         // init
         public Scanner(string filePath)
@@ -59,7 +74,7 @@ namespace MiniPLCompiler
                 // ..
                 else if (current_char == '.')
                 {
-                    Token t =  HandleStartWithDot();
+                    Token t = HandleStartWithDot();
                     if (t != null)
                         return t;
                     // if null report the error and continue to find the next token
@@ -67,7 +82,7 @@ namespace MiniPLCompiler
                 // comments (and maybe div /)
                 else if (current_char == '/')
                 {
-                    Token t =  HandleStartWithDiv();
+                    Token t = HandleStartWithDiv();
                     if (t != null)
                         return t;
                 }
@@ -81,8 +96,38 @@ namespace MiniPLCompiler
                 {
                     lineCnt++;
                 }
-                // TODO: to be continue...
+                // int value
+                else if (current_char >= '0' && current_char <= '9')
+                {
+                    Token t = HandleInteger(current_char);
+                    if (t != null)
+                        return t;
+                }
+                // string value
+                else if (current_char == '"')
+                {
+                    string s = StringHandler.ScanString(ref cStream);
+                    current_char = cStream.PullOne();
+                    // should be '"', if '\0' or '\n' then string incomplete
+                    if (current_char == '\0' || current_char == '\n')
+                    {
+                        // TODO: report error, skip this token
 
+                        lineCnt++;
+                    }
+                    else
+                    {
+                        return new Token(TokenType.STRING_VAL, s, lineCnt);
+                    }
+                }
+                // identifier or keyword
+                else if ((current_char >= 'a' && current_char <= 'z') ||
+                (current_char >= 'A' && current_char <= 'Z'))
+                {
+                    Token t = HandleIdorKeyword(current_char);
+                    if (t != null)
+                        return t;
+                }
 
                 current_char = cStream.PullOne();
             }
@@ -170,5 +215,42 @@ namespace MiniPLCompiler
             }
             return null;
         }
+
+        // integer
+        private Token HandleInteger(char current_char)
+        {
+            string tmp = "";
+            while (current_char >= '0' && current_char <= '9')
+            {
+                tmp += current_char.ToString();
+                current_char = cStream.PullOne();
+            }
+            cStream.PushOne();
+            return new Token(TokenType.INT_VAL, tmp, lineCnt);
+        }
+
+        // identifier or keyword
+        private Token HandleIdorKeyword(char current_char)
+        {
+            string tmp = "";
+            while ((current_char >= 'a' && current_char <= 'z') ||
+                (current_char >='A' && current_char <= 'Z') || 
+                (current_char >= '0' && current_char <= '9') ||
+                current_char == '_')
+            {
+                tmp += current_char.ToString();
+                current_char = cStream.PullOne();
+            }
+            cStream.PushOne();
+            if (keywords.ContainsKey(tmp))
+            {
+                return new Token(keywords[tmp], tmp, lineCnt);
+            }
+            else
+            {
+                return new Token(TokenType.IDENTIFIER, tmp, lineCnt);
+            }
+        }
+
     }
 }

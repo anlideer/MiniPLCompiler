@@ -23,7 +23,7 @@ namespace MiniPLCompiler
             };
             string res = "";
             char current_char = cStream.PullOne();
-            while(current_char != '\0')
+            while(current_char != '\0' && current_char != '\n') // normally, the string can't cross lines.
             {
                 if (current_char != '"' && current_char != '\\')
                 {

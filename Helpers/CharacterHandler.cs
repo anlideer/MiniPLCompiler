@@ -18,11 +18,13 @@ namespace MiniPLCompiler
         // read one character forward
         public char PullOne()
         {
-            currentInd++;
+            char c;
             if (currentInd < sourceStr.Length)
-                return sourceStr[currentInd];
+                c = sourceStr[currentInd]; 
             else
-                return '\0';    // safe to call for many extra times
+                c =  '\0';    // safe to call for many extra times
+            currentInd++;
+            return c;
         }
 
         // return one character back
