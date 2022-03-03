@@ -77,7 +77,6 @@ namespace MiniPLCompiler
                     Token t = HandleStartWithDot();
                     if (t != null)
                         return t;
-                    // if null report the error and continue to find the next token
                 }
                 // comments (and maybe div /)
                 else if (current_char == '/')
@@ -111,9 +110,12 @@ namespace MiniPLCompiler
                     // should be '"', if '\0' or '\n' then string incomplete
                     if (current_char == '\0' || current_char == '\n')
                     {
-                        // TODO: report error, skip this token
-
+                        // report error
+                        Token errorT = new Token(TokenType.ERROR, "\"" + s, lineCnt);
+                        MyError e = new MyError("\"" + s, lineCnt, "Lack of the end symbol of string");
+                        ErrorHandler.PushError(e);
                         lineCnt++;
+                        return errorT;
                     }
                     else
                     {
@@ -149,8 +151,8 @@ namespace MiniPLCompiler
             else
             {
                 cStream.PushOne();
-                Console.WriteLine("ERROR"); // TODO: report error
-                return null;
+                Console.WriteLine("ERROR");
+                return new Token(TokenType.ERROR, ".", lineCnt);
             }
         }
 
@@ -226,6 +228,8 @@ namespace MiniPLCompiler
                 current_char = cStream.PullOne();
             }
             cStream.PushOne();
+            MyError e = new MyError(".", lineCnt, "Invalid token . , do you mean .. ?");
+            ErrorHandler.PushError(e);
             return new Token(TokenType.INT_VAL, tmp, lineCnt);
         }
 

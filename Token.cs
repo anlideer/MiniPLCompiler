@@ -13,6 +13,7 @@ namespace MiniPLCompiler
         TO, // ..
         LEFT_BRACKET, RIGHT_BRACKET, // ( )
         END_OF_PROGRAM,
+        ERROR, // special token indicating error
     };
     class Token
     {
