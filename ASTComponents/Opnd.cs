@@ -7,8 +7,19 @@ namespace MiniPLCompiler.ASTComponents
     class Opnd : BaseNode
     {
         // valid: selfToken, (expression)
-        private Token selfToken;
-        private Expr expression;
+        public Token selfToken;
+        public Expr expression;
+
+
+        private HashSet<TokenType> followSet = new HashSet<TokenType>
+        {
+            TokenType.RIGHT_BRACKET,
+            TokenType.OPERATOR,
+            TokenType.SEMICOLON,
+            TokenType.TO,
+            TokenType.DO,
+            TokenType.END_OF_PROGRAM
+        };
 
         public override BaseNode TryBuild(ref Scanner scanner)
         {
@@ -50,6 +61,13 @@ namespace MiniPLCompiler.ASTComponents
             }
             else
             {
+                ErrorHandler.PushError(new MyError(currentToken.lexeme, currentToken.lineNum, "Lack of Opnd here"));
+                // skip until meeting the followSet
+                while (!followSet.Contains(currentToken.type))
+                {
+                    currentToken = scanner.PullOneToken();
+                }
+
                 scanner.PushOneToken(currentToken);
                 return null;
             }

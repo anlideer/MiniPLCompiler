@@ -7,9 +7,9 @@ namespace MiniPLCompiler.ASTComponents
     class Expr : BaseNode
     {
         // valid expr: left+op+right, unary_op+right, left
-        private Opnd left;
-        private Token op;
-        private Opnd right;
+        public Opnd left;
+        public Token op;
+        public Opnd right;
 
 
         public override BaseNode TryBuild(ref Scanner scanner)
