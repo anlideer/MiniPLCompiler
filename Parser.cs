@@ -6,6 +6,6 @@ namespace MiniPLCompiler
 {
     class Parser
     {
-
+        
     }
 }
