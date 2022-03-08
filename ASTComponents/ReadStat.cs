@@ -4,27 +4,32 @@ using System.Text;
 
 namespace MiniPLCompiler.ASTComponents
 {
-    class PrintStat : BaseNode
+    class ReadStat : BaseNode
     {
-        // valid: print expression
-        public Expr expression;
+        public Token iden;
 
 
         public override BaseNode TryBuild(ref Scanner scanner)
         {
             Token currentToken = scanner.PullOneToken();
-            if (currentToken.type == TokenType.PRINT)
+            if (currentToken.type == TokenType.READ)
             {
-                // expression
-                expression = (Expr)new Expr().TryBuild(ref scanner);
-                if (expression == null)
+                // identifier
+                Token nextToken = scanner.PullOneToken();
+                if (nextToken.type == TokenType.IDENTIFIER)
                 {
-                    // skip
-                    SkipHelper.SkipToSemi(ref scanner);
+                    iden = nextToken;
+                }
+                else
+                {
+                    ErrorHandler.PushError(new MyError(nextToken.lexeme, nextToken.lineNum, "Lack of identifier here"));
+                    // skip to ;
+                    SkipHelper.SkipToSemi(ref scanner, nextToken);
                     return null;
                 }
+
                 // ;
-                Token nextToken = scanner.PullOneToken();
+                nextToken = scanner.PullOneToken();
                 if (nextToken.type != TokenType.SEMICOLON)
                 {
                     ErrorHandler.PushError(new MyError(nextToken.lexeme, nextToken.lineNum, "Lack of ; here"));

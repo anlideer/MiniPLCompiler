@@ -14,7 +14,7 @@ namespace MiniPLCompiler.ASTComponents
 
         public override BaseNode TryBuild(ref Scanner scanner)
         {
-            Token currentToken = scanner.PullOneToken();
+            Token currentToken = scanner.PullOneToken();    // preread
             if (currentToken.type == TokenType.UNARY_OPERATOR)
             {
                 op = currentToken;
@@ -28,6 +28,7 @@ namespace MiniPLCompiler.ASTComponents
             // left+op+right / left
             else
             {
+                scanner.PushOneToken(currentToken);
                 left = (Opnd)new Opnd().TryBuild(ref scanner);
                 if (left == null)
                     return null;
