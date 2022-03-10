@@ -8,7 +8,6 @@ namespace MiniPLCompiler.ASTComponents
     {
         public Token iden;
 
-
         public override BaseNode TryBuild(ref Scanner scanner)
         {
             Token currentToken = scanner.PullOneToken();
@@ -46,6 +45,11 @@ namespace MiniPLCompiler.ASTComponents
             {
                 return null;
             }
+        }
+
+        public override void Accept(Visitor visitor)
+        {
+            visitor.VisitRead(this);
         }
     }
 }

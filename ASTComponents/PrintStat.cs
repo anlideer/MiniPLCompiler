@@ -9,7 +9,6 @@ namespace MiniPLCompiler.ASTComponents
         // valid: print expression
         public Expr expression;
 
-
         public override BaseNode TryBuild(ref Scanner scanner)
         {
             Token currentToken = scanner.PullOneToken();
@@ -41,6 +40,11 @@ namespace MiniPLCompiler.ASTComponents
             {
                 return null;
             }
+        }
+
+        public override void Accept(Visitor visitor)
+        {
+            visitor.VisitPrint(this);
         }
     }
 }

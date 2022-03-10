@@ -108,5 +108,10 @@ namespace MiniPLCompiler.ASTComponents
 
             return this;
         }
+
+        public override void Accept(Visitor visitor)
+        {
+            visitor.VisitFor(this);
+        }
     }
 }

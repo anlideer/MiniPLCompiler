@@ -23,8 +23,10 @@ namespace MiniPLCompiler
             Parser parser = new Parser(scanner);
             Statements stats = parser.BuildAST();
             ErrorHandler.PrintErrors();
-            // semantic analysis
-
+            // semantic analysis (visitor)
+            Visitor visitor = new Visitor();
+            stats.Accept(visitor);
+            ErrorHandler.PrintErrors();
         }
     }
 }

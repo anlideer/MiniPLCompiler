@@ -5,10 +5,10 @@ using MiniPLCompiler.ASTComponents;
 
 namespace MiniPLCompiler
 {
+    enum IdenType { INT, STRING, BOOL };
+
     class Visitor
     {
-        enum IdenType { INT, STRING, BOOL };
-
         private Dictionary<TokenType, IdenType> idenTypeTrans = new Dictionary<TokenType, IdenType>
         {
             { TokenType.INT_TYPE , IdenType.INT},
@@ -17,10 +17,10 @@ namespace MiniPLCompiler
         };
 
 
-        private Dictionary<string, IdenType> varTypeDic = new Dictionary<string, IdenType>();   // bind identifier type
-        private Dictionary<string, bool> varInit = new Dictionary<string, bool>();    // record if variable is init
-        private Dictionary<Opnd, IdenType> opTypeDic = new Dictionary<Opnd, IdenType>();    // bind opnd type (for later convenience)
-        private Dictionary<Expr, IdenType> exprTypeDic = new Dictionary<Expr, IdenType>();   // bind expr calculation type (for convenience)
+        public Dictionary<string, IdenType> varTypeDic = new Dictionary<string, IdenType>();   // bind identifier type
+        public  Dictionary<string, bool> varInit = new Dictionary<string, bool>();    // record if variable is init
+        public Dictionary<Opnd, IdenType> opTypeDic = new Dictionary<Opnd, IdenType>();    // bind opnd type (for later convenience)
+        public Dictionary<Expr, IdenType> exprTypeDic = new Dictionary<Expr, IdenType>();   // bind expr calculation type (for convenience)
         
         // visit expr
         public void VisitExpr(Expr expression)
@@ -103,9 +103,13 @@ namespace MiniPLCompiler
             if (t != null)
             {
                 // int/string
-                if (t.type == TokenType.INT_VAL || t.type == TokenType.STRING_TYPE)
+                if (t.type == TokenType.INT_VAL)
                 {
-                    opTypeDic[opnd] = idenTypeTrans[t.type];
+                    opTypeDic[opnd] = IdenType.INT;
+                }
+                else if (t.type == TokenType.STRING_VAL)
+                {
+                    opTypeDic[opnd] = IdenType.STRING;
                 }
                 // identifier
                 else
@@ -145,5 +149,87 @@ namespace MiniPLCompiler
             else
                 varInit[iname] = true;
         }
+
+        // visit assign
+        public void VisitAssign(AssignStat a)
+        {
+            if (!varTypeDic.ContainsKey(a.iden.lexeme))
+            {
+                ErrorHandler.PushError(new MyError(a.iden.lexeme, a.iden.lineNum, "Identifier not defined"));
+                return;
+            }
+
+            VisitExpr(a.expression);
+            if (!exprTypeDic.ContainsKey(a.expression))
+                return;
+            if (varTypeDic[a.iden.lexeme] != exprTypeDic[a.expression])
+            {
+                ErrorHandler.PushError(new MyError(a.iden.lexeme, a.iden.lineNum, "Identifier's type and expression's type are different."));
+            }
+        }
+
+        // visit for
+        public void VisitFor(ForStat f)
+        {
+            if (!varTypeDic.ContainsKey(f.iden.lexeme))
+            {
+                ErrorHandler.PushError(new MyError(f.iden.lexeme, f.iden.lineNum, "Identifier not defined"));
+                return;
+            }
+            if (varTypeDic[f.iden.lexeme] != IdenType.INT)
+            {
+                ErrorHandler.PushError(new MyError(f.iden.lexeme, f.iden.lineNum, "Identifier must be type integer"));
+                return;
+            }
+
+            VisitExpr(f.left);
+            VisitExpr(f.right);
+            if (!exprTypeDic.ContainsKey(f.left) || !exprTypeDic.ContainsKey(f.right))
+                return;
+            
+            if (exprTypeDic[f.left] != IdenType.INT || exprTypeDic[f.right] != IdenType.INT)
+            {
+                ErrorHandler.PushError(new MyError(f.iden.lexeme, f.iden.lineNum, "The ranges should also be integers"));
+                return;
+            }
+
+            VisitStatements(f.stats);
+        }
+
+        // visit read
+        public void VisitRead(ReadStat r)
+        {
+            if (!varTypeDic.ContainsKey(r.iden.lexeme))
+            {
+                ErrorHandler.PushError(new MyError(r.iden.lexeme, r.iden.lineNum, "Identifier not defined"));
+            }
+        }
+
+        // visit print
+        public void VisitPrint(PrintStat p)
+        {
+            VisitExpr(p.expression);
+        }
+
+        // visit assert
+        public void VisitAssert(AssertStat a)
+        {
+            VisitExpr(a.expression);
+            if (exprTypeDic.ContainsKey(a.expression))
+            {
+                if (exprTypeDic[a.expression] != IdenType.BOOL)
+                    ErrorHandler.PushError(new MyError(a.assertToken.lexeme, a.assertToken.lineNum, "expression after assert should return bool type value"));
+            }
+        }
+
+        // visit statements
+        public void VisitStatements(Statements stats)
+        {
+            foreach(BaseNode s in stats.statsList)
+            {
+                s.Accept(this);
+            }
+        }
     }
+
 }

@@ -7,13 +7,14 @@ namespace MiniPLCompiler.ASTComponents
     class AssertStat : BaseNode
     {
         public Expr expression;
-
+        public Token assertToken;   // just for reporting the position, not really useful
 
         public override BaseNode TryBuild(ref Scanner scanner)
         {
             Token currentToken = scanner.PullOneToken();
             if (currentToken.type == TokenType.ASSERT)
             {
+                assertToken = currentToken;
                 Token nextToken = scanner.PullOneToken();
                 if (nextToken.type != TokenType.LEFT_BRACKET)
                 {
@@ -49,6 +50,11 @@ namespace MiniPLCompiler.ASTComponents
             }
             else
                 return null;
+        }
+
+        public override void Accept(Visitor visitor)
+        {
+            visitor.VisitAssert(this);
         }
     }
 }
