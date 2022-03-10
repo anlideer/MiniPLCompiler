@@ -75,7 +75,7 @@ namespace MiniPLCompiler.ASTComponents
             }
 
             // statements
-            stats = (Statements)new Statements().TryBuild();
+            stats = (Statements)new Statements().TryBuild(ref scanner);
             if (stats == null)
                 return null;
 

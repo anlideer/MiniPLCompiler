@@ -12,5 +12,28 @@ namespace MiniPLCompiler
         {
             errorList.Add(e);
         }
+
+        public static bool IsEmpty()
+        {
+            if (errorList.Count == 0)
+                return true;
+            else
+                return false;
+        }
+
+        // print errors
+        public static void PrintErrors()
+        {
+            foreach(MyError e in errorList)
+            {
+                e.PrintError();
+            }
+        }
+
+        // empty
+        public static void ClearAll()
+        {
+            errorList.Clear();
+        }
     }
 }

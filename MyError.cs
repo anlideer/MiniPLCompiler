@@ -16,5 +16,10 @@ namespace MiniPLCompiler
             errorLine = eLine;
             errorMsg = eMsg;
         }
+
+        public void PrintError()
+        {
+            Console.WriteLine(String.Format("line {0} {1} found an error: {2}", errorLine + 1, errorSource, errorMsg));
+        }
     }
 }

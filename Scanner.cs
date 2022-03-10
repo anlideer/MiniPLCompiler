@@ -228,8 +228,6 @@ namespace MiniPLCompiler
                 current_char = cStream.PullOne();
             }
             cStream.PushOne();
-            MyError e = new MyError(".", lineCnt, "Invalid token . , do you mean .. ?");
-            ErrorHandler.PushError(e);
             return new Token(TokenType.INT_VAL, tmp, lineCnt);
         }
 
