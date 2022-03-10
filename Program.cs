@@ -8,34 +8,23 @@ namespace MiniPLCompiler
     {
         static void Main(string[] args)
         {
+            ExeProgram("Example1.pas");
+            ExeProgram("Example2.pas");
+            ExeProgram("Example3.pas");
+
+            Console.WriteLine("ok");
+        }
+
+        private static void ExeProgram(string fileName)
+        {
             // scanner
-            Console.WriteLine("Scanner working...");
-            Scanner scanner = new Scanner(Path.Join("..", "..", "..", "TestData", "Example1.pas"));
+            Scanner scanner = new Scanner(Path.Join("..", "..", "..", "TestData", fileName));
             // parser
-            Console.WriteLine("Parser working...");
             Parser parser = new Parser(scanner);
             Statements stats = parser.BuildAST();
             ErrorHandler.PrintErrors();
+            // semantic analysis
 
-            // scanner
-            Console.WriteLine("Scanner working...");
-            Scanner scanner2 = new Scanner(Path.Join("..", "..", "..", "TestData", "Example2.pas"));
-            // parser
-            Console.WriteLine("Parser working...");
-            Parser parser2 = new Parser(scanner2);
-            Statements stats2 = parser2.BuildAST();
-            ErrorHandler.PrintErrors();
-
-
-            // scanner
-            Console.WriteLine("Scanner working...");
-            Scanner scanner3 = new Scanner(Path.Join("..", "..", "..", "TestData", "Example3.pas"));
-            // parser
-            Console.WriteLine("Parser working...");
-            Parser parser3 = new Parser(scanner3);
-            Statements stats3 = parser3.BuildAST();
-            ErrorHandler.PrintErrors();
-            Console.WriteLine("ok");
         }
     }
 }
