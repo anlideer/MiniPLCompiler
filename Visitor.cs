@@ -18,7 +18,7 @@ namespace MiniPLCompiler
 
 
         public Dictionary<string, IdenType> varTypeDic = new Dictionary<string, IdenType>();   // bind identifier type
-        public  Dictionary<string, bool> varInit = new Dictionary<string, bool>();    // record if variable is init
+        public Dictionary<string, bool> varInit = new Dictionary<string, bool>();    // record if variable is init
         public Dictionary<Opnd, IdenType> opTypeDic = new Dictionary<Opnd, IdenType>();    // bind opnd type (for later convenience)
         public Dictionary<Expr, IdenType> exprTypeDic = new Dictionary<Expr, IdenType>();   // bind expr calculation type (for convenience)
         
@@ -147,7 +147,15 @@ namespace MiniPLCompiler
             if (def.expression == null)
                 varInit[iname] = false;
             else
+            {
                 varInit[iname] = true;
+                VisitExpr(def.expression);
+                if (exprTypeDic[def.expression] != varTypeDic[iname])
+                {
+                    ErrorHandler.PushError(new MyError(def.iden.lexeme, def.iden.lineNum, "Identifier is assigned to different type value."));
+                }
+            }
+                
         }
 
         // visit assign

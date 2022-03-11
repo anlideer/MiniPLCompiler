@@ -8,5 +8,7 @@ namespace MiniPLCompiler.ASTComponents
     {
         public abstract BaseNode TryBuild(ref Scanner scanner);
         public abstract void Accept(Visitor visitor);
+
+        public abstract void AcceptExe(SimpleInterpreter interpreter);
     }
 }

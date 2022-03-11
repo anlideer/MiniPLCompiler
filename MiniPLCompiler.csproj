@@ -2,10 +2,11 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFramework>netcoreapp2.0</TargetFramework>
     <ApplicationIcon />
     <Win32Resource />
     <Authors>Qinglu</Authors>
+    <StartupObject />
   </PropertyGroup>
 
 </Project>

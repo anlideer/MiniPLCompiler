@@ -57,5 +57,10 @@ namespace MiniPLCompiler.ASTComponents
         {
             visitor.VisitExpr(this);
         }
+
+        public override void AcceptExe(SimpleInterpreter interpreter)
+        {
+            interpreter.ExeExpr(this);
+        }
     }
 }
