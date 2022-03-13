@@ -116,6 +116,10 @@ namespace MiniPLCompiler
                     if (varTypeDic.ContainsKey(t.lexeme))
                     {
                         opTypeDic[opnd] = varTypeDic[t.lexeme];
+                        if (varInit[t.lexeme] == false)
+                        {
+                            ErrorHandler.PushError(new MyError(t.lexeme, t.lineNum, "Identifier not assigned value"));
+                        }
                     }
                     else
                     {
@@ -149,6 +153,9 @@ namespace MiniPLCompiler
             {
                 varInit[iname] = true;
                 VisitExpr(def.expression);
+                // a special case
+                if (def.expression.left != null && def.expression.left.selfToken != null && (def.expression.left.selfToken.lexeme == "0" || def.expression.left.selfToken.lexeme == "1"))
+                    return;
                 if (exprTypeDic[def.expression] != varTypeDic[iname])
                 {
                     ErrorHandler.PushError(new MyError(def.iden.lexeme, def.iden.lineNum, "Identifier is assigned to different type value."));
@@ -168,7 +175,11 @@ namespace MiniPLCompiler
 
             VisitExpr(a.expression);
             if (!exprTypeDic.ContainsKey(a.expression))
+            {
+                varInit[a.iden.lexeme] = true;
                 return;
+            }
+                
             if (varTypeDic[a.iden.lexeme] != exprTypeDic[a.expression])
             {
                 ErrorHandler.PushError(new MyError(a.iden.lexeme, a.iden.lineNum, "Identifier's type and expression's type are different."));
@@ -209,6 +220,10 @@ namespace MiniPLCompiler
             if (!varTypeDic.ContainsKey(r.iden.lexeme))
             {
                 ErrorHandler.PushError(new MyError(r.iden.lexeme, r.iden.lineNum, "Identifier not defined"));
+            }
+            else
+            {
+                varInit[r.iden.lexeme] = true;
             }
         }
 

@@ -6,7 +6,7 @@
     <ApplicationIcon />
     <Win32Resource />
     <Authors>Qinglu</Authors>
-    <StartupObject />
+    <StartupObject>MiniPLCompiler.Program</StartupObject>
   </PropertyGroup>
 
 </Project>

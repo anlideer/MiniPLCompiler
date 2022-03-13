@@ -130,6 +130,10 @@ namespace MiniPLCompiler
                     if (t != null)
                         return t;
                 }
+                else
+                {
+                    ErrorHandler.PushError(new MyError(current_char.ToString(), lineCnt, "Unacceptable token."));
+                }
 
                 current_char = cStream.PullOne();
             }

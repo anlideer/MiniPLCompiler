@@ -28,5 +28,6 @@ namespace MiniPLCompiler
             // clear errors
             ErrorHandler.ClearAll();
         }
+
     }
 }
