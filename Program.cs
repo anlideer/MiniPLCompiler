@@ -8,34 +8,19 @@ namespace MiniPLCompiler
     {
         static void Main(string[] args)
         {
-            //ExeProgram("Example1.pas");
-            //ExeProgram("Example2.pas");
-            ExeProgram("Example3.pas");
-
-            //Console.WriteLine("ok");
-        }
-
-        private static void ExeProgram(string fileName)
-        {
-            // scanner
-            Scanner scanner = new Scanner(Path.Combine("..", "..", "..", "TestData", fileName));
-            // parser
-            Parser parser = new Parser(scanner);
-            Statements stats = parser.BuildAST();
-            ErrorHandler.PrintErrors();
-            // semantic analysis (visitor)
-            Visitor visitor = new Visitor();
-            stats.Accept(visitor);
-            ErrorHandler.PrintErrors();
-            // interpreter
-            if (ErrorHandler.IsEmpty())
+            if (args.Length > 0)
             {
-                SimpleInterpreter interpreter = new SimpleInterpreter(visitor);
-                stats.AcceptExe(interpreter);
+                ProgramEntry.ExeProgram(args[0]);
             }
-
-            // clear errors
-            ErrorHandler.ClearAll();
+            else
+            {
+                Console.WriteLine("No command line args provided. Running sample program...");
+                ProgramEntry.ExeProgram(System.IO.Path.Combine("..", "..", "..", "TestData", "Example1.pas"));
+                ProgramEntry.ExeProgram(System.IO.Path.Combine("..", "..", "..", "TestData", "Example2.pas"));
+                ProgramEntry.ExeProgram(System.IO.Path.Combine("..", "..", "..", "TestData", "Example3.pas"));
+            }
         }
+
+
     }
 }
