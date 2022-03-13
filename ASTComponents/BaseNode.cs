@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace MiniPLCompiler.ASTComponents
+namespace MiniPLCompiler
 {
     abstract class BaseNode
     {
