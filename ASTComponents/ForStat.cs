@@ -13,6 +13,8 @@ namespace MiniPLCompiler
 
         public override BaseNode TryBuild(ref Scanner scanner)
         {
+            return null;
+            /*
             // for
             Token currentToken = scanner.PullOneToken();
             if (currentToken.type != TokenType.FOR) // won't happen if program goes correctly
@@ -107,6 +109,7 @@ namespace MiniPLCompiler
             }
 
             return this;
+            */
         }
 
         public override void Accept(Visitor visitor)

@@ -12,7 +12,7 @@ namespace MiniPLCompiler
         public override BaseNode TryBuild(ref Scanner scanner)
         {
             Token currentToken = scanner.PullOneToken();
-            if (currentToken.type == TokenType.PRINT)
+            if (currentToken.type == TokenType.WRITELN)
             {
                 // expression
                 expression = (Expr)new Expr().TryBuild(ref scanner);

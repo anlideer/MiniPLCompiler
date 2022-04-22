@@ -1,2 +1,8 @@
-var X : int := 4 + (6 * 2);
-print X;
+begin
+var i, j : integer;
+ read (i, j);
+ while i <> j do
+ if i > j then i := i - j;
+ else j := j - i;
+writeln (i);
+end.

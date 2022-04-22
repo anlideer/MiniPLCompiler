@@ -12,26 +12,44 @@ namespace MiniPLCompiler
 
         // One character for one token (not ambigious)
         private Dictionary<char, TokenType> singleSymbol = new Dictionary<char, TokenType> {
-            { '+', TokenType.OPERATOR}, { '-', TokenType.OPERATOR},
-            { '*', TokenType.OPERATOR}, { ';', TokenType.SEMICOLON},
-            { '&', TokenType.OPERATOR}, { '=', TokenType.OPERATOR},
-            { '<', TokenType.OPERATOR}, { '!', TokenType.UNARY_OPERATOR},
+            { '+', TokenType.ADD_OPERATOR}, { '-', TokenType.ADD_OPERATOR},
+            { '*', TokenType.MULTIPLY_OPERATOR}, { ';', TokenType.SEMICOLON}, { '%', TokenType.MULTIPLY_OPERATOR},
+            { '=', TokenType.RELATIONAL_OPERATOR},
             { '(', TokenType.LEFT_BRACKET}, { ')', TokenType.RIGHT_BRACKET},
+            { '[', TokenType.LEFT_SBRACKET }, { ']', TokenType.RIGHT_SBRACKET},
+            { ',', TokenType.COMMA}, { '.', TokenType.DOT},
         };
         // keywords
         private Dictionary<string, TokenType> keywords = new Dictionary<string, TokenType>
         {
-            { "int", TokenType.INT_TYPE},
+            { "integer", TokenType.INT_TYPE},
             { "string", TokenType.STRING_TYPE},
-            { "bool", TokenType.BOOL_TYPE},
+            { "Boolean", TokenType.BOOL_TYPE},
+            { "real", TokenType.REAL_TYPE},
             { "var", TokenType.VAR},
-            { "for", TokenType.FOR},
             { "end", TokenType.END},
-            { "in", TokenType.IN},
             { "do", TokenType.DO},
             { "read", TokenType.READ},
-            { "print", TokenType.PRINT},
+            { "writeln", TokenType.WRITELN},
             { "assert", TokenType.ASSERT},
+            { "or", TokenType.OR},
+            { "and", TokenType.AND},
+            { "not", TokenType.NOT},
+            { "if", TokenType.IF},
+            { "then", TokenType.THEN},
+            { "else", TokenType.ELSE},
+            { "of", TokenType.OF},
+            { "while", TokenType.WHILE},
+            { "begin", TokenType.BEGIN},
+            { "array", TokenType.ARRAY},
+            { "procedure", TokenType.PROCEDURE},
+            { "function", TokenType.FUNCTION},
+            { "program", TokenType.PROGRAM},
+            { "return", TokenType.RETURN},
+            { "false", TokenType.FALSE},
+            { "true", TokenType.TRUE},
+            { "size", TokenType.SIZE},
+
         };
         
         // init
@@ -66,25 +84,6 @@ namespace MiniPLCompiler
                 {
                     return new Token(singleSymbol[current_char], current_char.ToString(), lineCnt);
                 }
-                //: & :=
-                else if (current_char == ':')
-                {
-                    return HandleStartWithColon();
-                }
-                // ..
-                else if (current_char == '.')
-                {
-                    Token t = HandleStartWithDot();
-                    if (t != null)
-                        return t;
-                }
-                // comments (and maybe div /)
-                else if (current_char == '/')
-                {
-                    Token t = HandleStartWithDiv();
-                    if (t != null)
-                        return t;
-                }
                 // space (ignore
                 else if (current_char == ' ' || current_char == '\t' || current_char == '\r' || current_char == '\f' || current_char == '\v')
                 {
@@ -94,6 +93,28 @@ namespace MiniPLCompiler
                 else if (current_char == '\n')
                 {
                     lineCnt++;
+                }
+                //: & :=
+                else if (current_char == ':')
+                {
+                    return HandleStartWithColon();
+                }
+                // comments (and maybe div /)
+                else if (current_char == '/')
+                {
+                    Token t = HandleStartWithDiv();
+                    if (t != null)
+                        return t;
+                }
+                // start with <
+                else if (current_char == '<')
+                {
+                    return HandleStartWithSmaller();
+                }
+                // start with >
+                else if (current_char == '>')
+                {
+                    return HandleStartWithBigger();
                 }
                 // int value
                 else if (current_char >= '0' && current_char <= '9')
@@ -142,23 +163,6 @@ namespace MiniPLCompiler
             return new Token(TokenType.END_OF_PROGRAM, "", lineCnt);
         }
 
-
-        // deal with start with "."
-        private Token HandleStartWithDot()
-        {
-            // preread
-            char current_char = cStream.PullOne();
-            if (current_char == '.')
-            {
-                return new Token(TokenType.TO, "..", lineCnt);
-            }
-            else
-            {
-                cStream.PushOne();
-                Console.WriteLine("ERROR");
-                return new Token(TokenType.ERROR, ".", lineCnt);
-            }
-        }
 
         // deal with start with ":"
         private Token HandleStartWithColon()
@@ -217,7 +221,7 @@ namespace MiniPLCompiler
             {
                 // return preread
                 cStream.PushOne();
-                return new Token(TokenType.OPERATOR, "/", lineCnt);
+                return new Token(TokenType.MULTIPLY_OPERATOR, "/", lineCnt);
             }
             return null;
         }
@@ -255,6 +259,36 @@ namespace MiniPLCompiler
             else
             {
                 return new Token(TokenType.IDENTIFIER, tmp, lineCnt);
+            }
+        }
+
+        // handle start with <
+        private Token HandleStartWithSmaller()
+        {
+            char next_char = cStream.PullOne();
+            if (next_char == '>')
+                return new Token(TokenType.RELATIONAL_OPERATOR, "<>", lineCnt);
+            else if (next_char == '=')
+                return new Token(TokenType.RELATIONAL_OPERATOR, "<=", lineCnt);
+            else
+            {
+                // just <
+                cStream.PushOne();
+                return new Token(TokenType.RELATIONAL_OPERATOR, "<", lineCnt);
+            }
+        }
+
+        // handle start with >
+        private Token HandleStartWithBigger()
+        {
+            char next_char = cStream.PullOne();
+            if (next_char == '=')
+                return new Token(TokenType.RELATIONAL_OPERATOR, ">=", lineCnt);
+            else
+            {
+                // just >
+                cStream.PushOne();
+                return new Token(TokenType.RELATIONAL_OPERATOR, ">", lineCnt);
             }
         }
 

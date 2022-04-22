@@ -13,9 +13,9 @@ namespace MiniPLCompiler
         { 
             TokenType.VAR,
             TokenType.IDENTIFIER,
-            TokenType.FOR,
+            //TokenType.FOR,
             TokenType.READ,
-            TokenType.PRINT,
+            //TokenType.PRINT,
             TokenType.ASSERT,
         };
 

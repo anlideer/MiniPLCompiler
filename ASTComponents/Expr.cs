@@ -14,6 +14,8 @@ namespace MiniPLCompiler
 
         public override BaseNode TryBuild(ref Scanner scanner)
         {
+            return null;
+            /*
             Token currentToken = scanner.PullOneToken();    // preread
             if (currentToken.type == TokenType.UNARY_OPERATOR)
             {
@@ -51,6 +53,7 @@ namespace MiniPLCompiler
                     return this;
                 }
             }
+            */
         }
 
         public override void Accept(Visitor visitor)

@@ -14,7 +14,15 @@ namespace MiniPLCompiler
             else
             {
                 Console.WriteLine("No command line args provided. Running sample program...");
-                ProgramEntry.ExeProgram(System.IO.Path.Combine("..", "..", "..", "TestData", "Example1.pas"));
+                Scanner scanner = new Scanner(Path.Combine("..", "..", "..", "TestData", "Example1.pas"));
+                Token t = scanner.PullOneToken();
+                while(t.type != TokenType.END_OF_PROGRAM)
+                {
+                    Console.WriteLine(string.Format("{0}: {1}, {2}", t.type, t.lexeme, t.lineNum));
+                    t = scanner.PullOneToken();
+                }
+                ErrorHandler.PrintErrors();
+                //ProgramEntry.ExeProgram(System.IO.Path.Combine("..", "..", "..", "TestData", "Example1.pas"));
                 //ProgramEntry.ExeProgram(System.IO.Path.Combine("..", "..", "..", "TestData", "Example2.pas"));
                 //ProgramEntry.ExeProgram(System.IO.Path.Combine("..", "..", "..", "TestData", "Example3.pas"));
             }

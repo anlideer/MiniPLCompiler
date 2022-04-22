@@ -10,6 +10,8 @@ namespace MiniPLCompiler
 
         public override BaseNode TryBuild(ref Scanner scanner)
         {
+            return null;
+            /*
             // preread
             Token token = scanner.PullOneToken();
             while (token.type != TokenType.END_OF_PROGRAM)
@@ -73,6 +75,7 @@ namespace MiniPLCompiler
             }
 
             return this;
+            */
         }
 
         public override void Accept(Visitor visitor)
