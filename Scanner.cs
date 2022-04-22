@@ -119,7 +119,7 @@ namespace MiniPLCompiler
                 // int value
                 else if (current_char >= '0' && current_char <= '9')
                 {
-                    Token t = HandleInteger(current_char);
+                    Token t = HandleNumber(current_char);
                     if (t != null)
                         return t;
                 }
@@ -226,8 +226,68 @@ namespace MiniPLCompiler
             return null;
         }
 
-        // integer
-        private Token HandleInteger(char current_char)
+        // integer / real
+        private Token HandleNumber(char current_char)
+        {
+            string digits = ReadDigits(current_char);
+            current_char = cStream.PullOne();
+            // real
+            if (current_char == '.')
+            {
+                bool errorFlag = false;
+                string res = digits + ".";
+                current_char = cStream.PullOne();
+                digits = ReadDigits(current_char);
+                if (digits.Length == 0)
+                {
+                    ErrorHandler.PushError(new MyError(current_char.ToString(), lineCnt, "Need some digits after dot ."));
+                    errorFlag = true;
+                }
+                res += digits;
+                current_char = cStream.PullOne();
+                // optional [e...]
+                if (current_char == 'e')
+                {
+                    res += "e";
+                    // optional [sign]
+                    current_char = cStream.PullOne();
+                    if (current_char == '+' || current_char == '-')
+                    {
+                        res += current_char.ToString();
+                        current_char = cStream.PullOne();
+                    }
+
+                    // digits (must exist)
+                    digits = ReadDigits(current_char);
+                    if (digits.Length == 0)
+                    {
+                        ErrorHandler.PushError(new MyError(current_char.ToString(), lineCnt, "Need some digits if you use 'e' "));
+                        errorFlag = true;
+                    }
+                    res += digits;
+
+                    if (errorFlag)
+                        return new Token(TokenType.ERROR, res, lineCnt);
+                    else
+                        return new Token(TokenType.REAL_VAL, res, lineCnt);
+                }
+                else
+                {
+                    cStream.PushOne();
+                    return new Token(TokenType.REAL_VAL, res, lineCnt);
+                }
+            }
+            // int
+            else
+            {
+                cStream.PushOne();
+                return new Token(TokenType.INT_VAL, digits, lineCnt);
+            }
+            
+        }
+
+        // get <digits>
+        private string ReadDigits(char current_char)
         {
             string tmp = "";
             while (current_char >= '0' && current_char <= '9')
@@ -236,7 +296,7 @@ namespace MiniPLCompiler
                 current_char = cStream.PullOne();
             }
             cStream.PushOne();
-            return new Token(TokenType.INT_VAL, tmp, lineCnt);
+            return tmp;
         }
 
         // identifier or keyword
