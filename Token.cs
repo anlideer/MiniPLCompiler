@@ -5,8 +5,7 @@ using System.Text;
 namespace MiniPLCompiler
 {
     enum TokenType {
-        INT_VAL, STRING_VAL, REAL_VAL,
-        FALSE, TRUE,
+        INT_VAL, STRING_VAL, REAL_VAL, BOOL_VAL,
         AND, OR, NOT,
         INT_TYPE, STRING_TYPE, BOOL_TYPE, REAL_TYPE,
         IDENTIFIER,

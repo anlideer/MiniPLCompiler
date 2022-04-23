@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace MiniPLCompiler
+namespace MiniPLCompiler.ASTComponents
 {
     class DefStat : BaseNode
     {

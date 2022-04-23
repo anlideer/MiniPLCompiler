@@ -46,8 +46,8 @@ namespace MiniPLCompiler
             { "function", TokenType.FUNCTION},
             { "program", TokenType.PROGRAM},
             { "return", TokenType.RETURN},
-            { "false", TokenType.FALSE},
-            { "true", TokenType.TRUE},
+            { "false", TokenType.BOOL_VAL},
+            { "true", TokenType.BOOL_VAL},
             { "size", TokenType.SIZE},
 
         };

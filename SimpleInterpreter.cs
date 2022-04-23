@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using MiniPLCompiler.ASTComponents;
 
 namespace MiniPLCompiler
 {
@@ -27,15 +28,18 @@ namespace MiniPLCompiler
         // statements
         public void ExeStats(Statements stats)
         {
+            /*
             foreach(BaseNode b in stats.statsList)
             {
                 b.AcceptExe(this);
             }
+            */
         }
 
         // opnd
         public void ExeOpnd (Opnd opnd)
         {
+            /*
             if (opnd.selfToken != null)
             {
                 if (opnd.selfToken.type == TokenType.INT_VAL)
@@ -75,11 +79,13 @@ namespace MiniPLCompiler
                     opndIntDic[opnd] = exprIntDic[opnd.expression];
                 }
             }
+            */
         }
 
         // expression
         public void ExeExpr (Expr expression)
         {
+            /*
             // left
             if (expression.op == null)
             {
@@ -140,21 +146,25 @@ namespace MiniPLCompiler
                         Console.WriteLine("Attention! Unimplemented op: " + expression.op.lexeme);
                 }
             }
+            */
         }
 
         // print
         public void ExePrint(PrintStat p)
         {
+            /*
             ExeExpr(p.expression);
             if (visitor.exprTypeDic[p.expression] == IdenType.STRING)
                 Console.Write(exprStrDic[p.expression]);
             else
                 Console.Write(exprIntDic[p.expression]);
+            */
         }
 
         // read
         public void ExeRead(ReadStat r)
         {
+            /*
             Token t = r.iden;
             string tmps = Console.ReadLine();
             // string
@@ -187,19 +197,23 @@ namespace MiniPLCompiler
                 else
                     intDic[t.lexeme] = tmpi;
             }
+            */
         }
 
         // assert
         public void ExeAssert(AssertStat a)
         {
+            /*
             ExeExpr(a.expression);
             if (exprIntDic[a.expression] == 0)
                 throw new Exception("Assert condition not met. Line: " + a.assertToken.lineNum.ToString());
+            */
         }
 
         // assign
         public void ExeAssign(AssignStat a)
         {
+            /*
             ExeExpr(a.expression);
             if (visitor.varTypeDic[a.iden.lexeme] == IdenType.STRING)
             {
@@ -209,11 +223,13 @@ namespace MiniPLCompiler
             {
                 intDic[a.iden.lexeme] = exprIntDic[a.expression];
             }
+            */
         }
 
         // definition
         public void ExeDef(DefStat d)
         {
+            /*
             if (d.expression == null)
                 return;
 
@@ -222,11 +238,13 @@ namespace MiniPLCompiler
                 strDic[d.iden.lexeme] = exprStrDic[d.expression];
             else
                 intDic[d.iden.lexeme] = exprIntDic[d.expression];
+            */
         }
 
         // for loop
         public void ExeFor(ForStat f)
         {
+            /*
             ExeExpr(f.left);
             ExeExpr(f.right);
 
@@ -240,6 +258,7 @@ namespace MiniPLCompiler
                 ExeStats(f.stats);
             }
             intDic[f.iden.lexeme] = i;
+            */
         }
 
 

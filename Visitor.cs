@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using MiniPLCompiler.ASTComponents;
 
 namespace MiniPLCompiler
 {
@@ -24,6 +25,7 @@ namespace MiniPLCompiler
         // visit expr
         public void VisitExpr(Expr expression)
         {
+            /*
             // just left
             if (expression.op == null)
             {
@@ -93,11 +95,13 @@ namespace MiniPLCompiler
                         ErrorHandler.PushError(new MyError(op.lexeme, op.lineNum, "Invalid expression. -/* can only be used with integers."));
                 }
             }
+            */
         }
 
         // visit opnd
         public void VisitOpnd(Opnd opnd)
         {
+            /*
             Token t = opnd.selfToken;
             if (t != null)
             {
@@ -135,11 +139,13 @@ namespace MiniPLCompiler
                     opTypeDic[opnd] = exprTypeDic[opnd.expression];
                 }
             }
+            */
         }
 
         // visit def (binding type)
         public void VisitDef(DefStat def)
         {
+            /*
             string iname = def.iden.lexeme;
             if (varTypeDic.ContainsKey(iname))
             {
@@ -161,12 +167,13 @@ namespace MiniPLCompiler
                     ErrorHandler.PushError(new MyError(def.iden.lexeme, def.iden.lineNum, "Identifier is assigned to different type value."));
                 }
             }
-                
+              */  
         }
 
         // visit assign
         public void VisitAssign(AssignStat a)
         {
+            /*
             if (!varTypeDic.ContainsKey(a.iden.lexeme))
             {
                 ErrorHandler.PushError(new MyError(a.iden.lexeme, a.iden.lineNum, "Identifier not defined"));
@@ -184,11 +191,13 @@ namespace MiniPLCompiler
             {
                 ErrorHandler.PushError(new MyError(a.iden.lexeme, a.iden.lineNum, "Identifier's type and expression's type are different."));
             }
+            */
         }
 
         // visit for
         public void VisitFor(ForStat f)
         {
+            /*
             if (!varTypeDic.ContainsKey(f.iden.lexeme))
             {
                 ErrorHandler.PushError(new MyError(f.iden.lexeme, f.iden.lineNum, "Identifier not defined"));
@@ -212,11 +221,13 @@ namespace MiniPLCompiler
             }
 
             VisitStatements(f.stats);
+            */
         }
 
         // visit read
         public void VisitRead(ReadStat r)
         {
+            /*
             if (!varTypeDic.ContainsKey(r.iden.lexeme))
             {
                 ErrorHandler.PushError(new MyError(r.iden.lexeme, r.iden.lineNum, "Identifier not defined"));
@@ -225,32 +236,37 @@ namespace MiniPLCompiler
             {
                 varInit[r.iden.lexeme] = true;
             }
+            */
         }
 
         // visit print
         public void VisitPrint(PrintStat p)
         {
-            VisitExpr(p.expression);
+            //VisitExpr(p.expression);
         }
 
         // visit assert
         public void VisitAssert(AssertStat a)
         {
+            /*
             VisitExpr(a.expression);
             if (exprTypeDic.ContainsKey(a.expression))
             {
                 if (exprTypeDic[a.expression] != IdenType.BOOL)
                     ErrorHandler.PushError(new MyError(a.assertToken.lexeme, a.assertToken.lineNum, "expression after assert should return bool type value"));
             }
+            */
         }
 
         // visit statements
         public void VisitStatements(Statements stats)
         {
+            /*
             foreach(BaseNode s in stats.statsList)
             {
                 s.Accept(this);
             }
+            */
         }
     }
 
