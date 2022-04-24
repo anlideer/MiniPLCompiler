@@ -6,45 +6,55 @@ namespace MiniPLCompiler.ASTComponents
 {
     class ReadStat : BaseNode
     {
-        public Token iden;
+        public List<Variable> vars = new List<Variable>();
 
         public override BaseNode TryBuild(ref Scanner scanner)
         {
             Token currentToken = scanner.PullOneToken();
-            if (currentToken.type == TokenType.READ)
+            // read
+            if (currentToken.type != TokenType.READ)
             {
-                // identifier
-                Token nextToken = scanner.PullOneToken();
-                if (nextToken.type == TokenType.IDENTIFIER)
-                {
-                    iden = nextToken;
-                }
-                else
-                {
-                    ErrorHandler.PushError(new MyError(nextToken.lexeme, nextToken.lineNum, "Lack of identifier here"));
-                    // skip to ;
-                    SkipHelper.SkipToSemi(ref scanner, nextToken);
-                    return null;
-                }
-
-                // ;
-                nextToken = scanner.PullOneToken();
-                if (nextToken.type != TokenType.SEMICOLON)
-                {
-                    ErrorHandler.PushError(new MyError(nextToken.lexeme, nextToken.lineNum, "Lack of ; here"));
-                    // push back this token, continue the program (hopefully ignoring the error and continue
-                    scanner.PushOneToken(nextToken);
-                    return this;
-                }
-                else
-                {
-                    return this;
-                }
-            }
-            else
-            {
+                ErrorHandler.PushError(new MyError(currentToken.lexeme, currentToken.lineNum, "Expect keyword read"));
+                scanner.PushOneToken(currentToken);
                 return null;
             }
+
+            // (
+            currentToken = scanner.PullOneToken();
+            if (currentToken.type != TokenType.LEFT_BRACKET)
+            {
+                ErrorHandler.PushError(new MyError(currentToken.lexeme, currentToken.lineNum, "Expect ("));
+                scanner.PushOneToken(currentToken);
+                return null;
+            }
+
+            // variable
+            Variable tmp = (Variable)new Variable().TryBuild(ref scanner);
+            if (tmp == null)
+                return null;
+            vars.Add(tmp);
+
+            // , variable
+            currentToken = scanner.PullOneToken();
+            while(currentToken.type == TokenType.COMMA)
+            {
+                Variable tmpv = (Variable)new Variable().TryBuild(ref scanner);
+                if (tmpv == null)
+                    return null;
+                vars.Add(tmpv);
+                currentToken = scanner.PullOneToken();
+            }
+
+            // )
+            if (currentToken.type != TokenType.RIGHT_BRACKET)
+            {
+                ErrorHandler.PushError(new MyError(currentToken.lexeme, currentToken.lineNum, "Expect ) here"));
+                scanner.PushOneToken(currentToken);
+                return null;
+            }
+
+            return this;
+
         }
 
         public override void Accept(Visitor visitor)

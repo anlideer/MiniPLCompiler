@@ -12,8 +12,6 @@ namespace MiniPLCompiler
 
         private Dictionary<string, int> intDic = new Dictionary<string, int>(); // int and bool
         private Dictionary<string, string> strDic = new Dictionary<string, string>();   // string
-        private Dictionary<Opnd, int> opndIntDic = new Dictionary<Opnd, int>();
-        private Dictionary<Opnd, string> opndStrDic = new Dictionary<Opnd, string>();
         private Dictionary<Expr, int> exprIntDic = new Dictionary<Expr, int>();
         private Dictionary<Expr, string> exprStrDic = new Dictionary<Expr, string>();
 
@@ -23,64 +21,6 @@ namespace MiniPLCompiler
             visitor = v;
         }
 
-        // still use the visitor pattern
-
-        // statements
-        public void ExeStats(Statements stats)
-        {
-            /*
-            foreach(BaseNode b in stats.statsList)
-            {
-                b.AcceptExe(this);
-            }
-            */
-        }
-
-        // opnd
-        public void ExeOpnd (Opnd opnd)
-        {
-            /*
-            if (opnd.selfToken != null)
-            {
-                if (opnd.selfToken.type == TokenType.INT_VAL)
-                {
-                    opndIntDic[opnd] = int.Parse(opnd.selfToken.lexeme);
-                    return;
-                }
-                else if (opnd.selfToken.type == TokenType.STRING_VAL)
-                {
-                    opndStrDic[opnd] = opnd.selfToken.lexeme;
-                    return;
-                }
-                else
-                {
-                    if (visitor.varTypeDic[opnd.selfToken.lexeme] == IdenType.BOOL || visitor.varTypeDic[opnd.selfToken.lexeme] == IdenType.INT)
-                    {
-                        opndIntDic[opnd] = intDic[opnd.selfToken.lexeme];
-                        return;
-                    }
-                    else
-                    {
-                        opndStrDic[opnd] = strDic[opnd.selfToken.lexeme];
-                        return;
-                    }
-                }
-            }
-            // expressoin
-            else
-            {
-                ExeExpr(opnd.expression);
-                if (visitor.opTypeDic[opnd] == IdenType.STRING)
-                {
-                    opndStrDic[opnd] = exprStrDic[opnd.expression];
-                }
-                else
-                {
-                    opndIntDic[opnd] = exprIntDic[opnd.expression];
-                }
-            }
-            */
-        }
 
         // expression
         public void ExeExpr (Expr expression)
@@ -242,25 +182,6 @@ namespace MiniPLCompiler
         }
 
         // for loop
-        public void ExeFor(ForStat f)
-        {
-            /*
-            ExeExpr(f.left);
-            ExeExpr(f.right);
-
-            int lefti = exprIntDic[f.left];
-            int righti = exprIntDic[f.right];
-            // loop
-            int i;
-            for (i = lefti; i <= righti; i++)
-            {
-                intDic[f.iden.lexeme] = i;
-                ExeStats(f.stats);
-            }
-            intDic[f.iden.lexeme] = i;
-            */
-        }
-
 
     }
 }

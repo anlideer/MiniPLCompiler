@@ -6,84 +6,62 @@ namespace MiniPLCompiler.ASTComponents
 {
     class DefStat : BaseNode
     {
-        public Token iden;
-        public Token idenType;
-        public Expr expression; // can be null
+        public List<Token> idens = new List<Token>();
+        public PLType idenType;
+
 
         public override BaseNode TryBuild(ref Scanner scanner)
         {
             // var
             Token currentToken = scanner.PullOneToken();
             if (currentToken.type != TokenType.VAR) // won't happen but...
+            {
+                ErrorHandler.PushError(new MyError(currentToken.lexeme, currentToken.lineNum, "Expect var"));
+                scanner.PushOneToken(currentToken);
                 return null;
+            }
 
             // identifier
             currentToken = scanner.PullOneToken();
             if (currentToken.type != TokenType.IDENTIFIER)
             {
                 ErrorHandler.PushError(new MyError(currentToken.lexeme, currentToken.lineNum, "Lack of identifier here"));
-                SkipHelper.SkipToSemi(ref scanner, currentToken);
+                scanner.PushOneToken(currentToken);
                 return null;
             }
-            iden = currentToken;
+            idens.Add(currentToken);
+
+            // , iden
+            currentToken = scanner.PullOneToken();
+            while(currentToken.type == TokenType.COMMA)
+            {
+                currentToken = scanner.PullOneToken();
+                // iden
+                if (currentToken.type != TokenType.IDENTIFIER)
+                {
+                    ErrorHandler.PushError(new MyError(currentToken.lexeme, currentToken.lineNum, "Lack of identifier here"));
+                    scanner.PushOneToken(currentToken);
+                    return null;
+                }
+                idens.Add(currentToken);
+
+                currentToken = scanner.PullOneToken();
+            }
 
             // :
-            currentToken = scanner.PullOneToken();
             if (currentToken.type != TokenType.COLON)
             {
                 ErrorHandler.PushError(new MyError(currentToken.lexeme, currentToken.lineNum, "Lack of : here"));
-                SkipHelper.SkipToSemi(ref scanner, currentToken);
+                scanner.PushOneToken(currentToken);
                 return null;
             }
-            
 
             // type
-            currentToken = scanner.PullOneToken();
-            if (currentToken.type != TokenType.INT_TYPE && currentToken.type != TokenType.STRING_TYPE && currentToken.type != TokenType.BOOL_TYPE)
-            {
-                ErrorHandler.PushError(new MyError(currentToken.lexeme, currentToken.lineNum, "Lack of type (int, string, bool) here"));
-                SkipHelper.SkipToSemi(ref scanner, currentToken);
+            idenType = (PLType)new PLType().TryBuild(ref scanner);
+            if (idenType == null)
                 return null;
-            }
-            idenType = currentToken;
 
-            // ; or :=
-            currentToken = scanner.PullOneToken();
-            if (currentToken.type == TokenType.SEMICOLON)
-            {
-                return this;
-            }
-            else if (currentToken.type == TokenType.ASSIGN)
-            {
-                // expr
-                expression = (Expr)new Expr().TryBuild(ref scanner);
-                if (expression == null)
-                {
-                    SkipHelper.SkipToSemi(ref scanner, currentToken);
-                    return null;
-                }
-
-                // ;
-                currentToken = scanner.PullOneToken();
-                if (currentToken.type == TokenType.SEMICOLON)
-                {
-                    return this;
-                }
-                else
-                {
-                    // now we have ; tolerance
-                    ErrorHandler.PushError(new MyError(currentToken.lexeme, currentToken.lineNum, "Lack of ; here"));
-                    scanner.PushOneToken(currentToken);
-                    return this;
-                }
-            }
-            else
-            {
-                ErrorHandler.PushError(new MyError(currentToken.lexeme, currentToken.lineNum, "Lack of ; or := here"));
-                // here I'm not doing the ; tolerance anymore, just skip until the next ;
-                SkipHelper.SkipToSemi(ref scanner, currentToken);
-                return null;
-            }
+            return this;
         }
 
         public override void Accept(Visitor visitor)

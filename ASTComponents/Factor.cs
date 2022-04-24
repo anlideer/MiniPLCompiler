@@ -26,6 +26,8 @@ namespace MiniPLCompiler.ASTComponents
                 node = new Factor().TryBuild(ref scanner);
                 if (node == null)
                     return null;
+                else
+                    return this;
             }
 
             // id

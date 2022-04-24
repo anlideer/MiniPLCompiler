@@ -19,7 +19,6 @@ namespace MiniPLCompiler
 
         public Dictionary<string, IdenType> varTypeDic = new Dictionary<string, IdenType>();   // bind identifier type
         public Dictionary<string, bool> varInit = new Dictionary<string, bool>();    // record if variable is init
-        public Dictionary<Opnd, IdenType> opTypeDic = new Dictionary<Opnd, IdenType>();    // bind opnd type (for later convenience)
         public Dictionary<Expr, IdenType> exprTypeDic = new Dictionary<Expr, IdenType>();   // bind expr calculation type (for convenience)
         
         // visit expr
@@ -98,50 +97,6 @@ namespace MiniPLCompiler
             */
         }
 
-        // visit opnd
-        public void VisitOpnd(Opnd opnd)
-        {
-            /*
-            Token t = opnd.selfToken;
-            if (t != null)
-            {
-                // int/string
-                if (t.type == TokenType.INT_VAL)
-                {
-                    opTypeDic[opnd] = IdenType.INT;
-                }
-                else if (t.type == TokenType.STRING_VAL)
-                {
-                    opTypeDic[opnd] = IdenType.STRING;
-                }
-                // identifier
-                else
-                {
-                    if (varTypeDic.ContainsKey(t.lexeme))
-                    {
-                        opTypeDic[opnd] = varTypeDic[t.lexeme];
-                        if (varInit[t.lexeme] == false)
-                        {
-                            ErrorHandler.PushError(new MyError(t.lexeme, t.lineNum, "Identifier not assigned value"));
-                        }
-                    }
-                    else
-                    {
-                        ErrorHandler.PushError(new MyError(t.lexeme, t.lineNum, "Identifier not defined"));
-                    }
-                }
-            }
-            else
-            {
-                VisitExpr(opnd.expression);
-                if (exprTypeDic.ContainsKey(opnd.expression))
-                {
-                    opTypeDic[opnd] = exprTypeDic[opnd.expression];
-                }
-            }
-            */
-        }
-
         // visit def (binding type)
         public void VisitDef(DefStat def)
         {
@@ -194,35 +149,6 @@ namespace MiniPLCompiler
             */
         }
 
-        // visit for
-        public void VisitFor(ForStat f)
-        {
-            /*
-            if (!varTypeDic.ContainsKey(f.iden.lexeme))
-            {
-                ErrorHandler.PushError(new MyError(f.iden.lexeme, f.iden.lineNum, "Identifier not defined"));
-                return;
-            }
-            if (varTypeDic[f.iden.lexeme] != IdenType.INT)
-            {
-                ErrorHandler.PushError(new MyError(f.iden.lexeme, f.iden.lineNum, "Identifier must be type integer"));
-                return;
-            }
-
-            VisitExpr(f.left);
-            VisitExpr(f.right);
-            if (!exprTypeDic.ContainsKey(f.left) || !exprTypeDic.ContainsKey(f.right))
-                return;
-            
-            if (exprTypeDic[f.left] != IdenType.INT || exprTypeDic[f.right] != IdenType.INT)
-            {
-                ErrorHandler.PushError(new MyError(f.iden.lexeme, f.iden.lineNum, "The ranges should also be integers"));
-                return;
-            }
-
-            VisitStatements(f.stats);
-            */
-        }
 
         // visit read
         public void VisitRead(ReadStat r)
@@ -258,16 +184,6 @@ namespace MiniPLCompiler
             */
         }
 
-        // visit statements
-        public void VisitStatements(Statements stats)
-        {
-            /*
-            foreach(BaseNode s in stats.statsList)
-            {
-                s.Accept(this);
-            }
-            */
-        }
     }
 
 }

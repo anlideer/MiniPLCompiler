@@ -11,6 +11,7 @@ namespace MiniPLCompiler
         {
             // scanner
             Scanner scanner = new Scanner(fileName);
+            /*
             // parser
             Parser parser = new Parser(scanner);
             Statements stats = parser.BuildAST();
@@ -28,6 +29,7 @@ namespace MiniPLCompiler
 
             // clear errors
             ErrorHandler.ClearAll();
+            */
         }
 
     }

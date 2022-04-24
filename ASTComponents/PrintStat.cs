@@ -6,40 +6,40 @@ namespace MiniPLCompiler.ASTComponents
 {
     class PrintStat : BaseNode
     {
-        // valid: print expression
-        public Expr expression;
+        public Arguments args;
 
         public override BaseNode TryBuild(ref Scanner scanner)
         {
             Token currentToken = scanner.PullOneToken();
-            if (currentToken.type == TokenType.WRITELN)
+            // writeln
+            if (currentToken.type != TokenType.WRITELN)
             {
-                // expression
-                expression = (Expr)new Expr().TryBuild(ref scanner);
-                if (expression == null)
-                {
-                    // skip
-                    SkipHelper.SkipToSemi(ref scanner);
-                    return null;
-                }
-                // ;
-                Token nextToken = scanner.PullOneToken();
-                if (nextToken.type != TokenType.SEMICOLON)
-                {
-                    ErrorHandler.PushError(new MyError(nextToken.lexeme, nextToken.lineNum, "Lack of ; here"));
-                    // push back this token, continue the program (hopefully ignoring the error and continue
-                    scanner.PushOneToken(nextToken);
-                    return this;
-                }
-                else
-                {
-                    return this;
-                }
-            }
-            else
-            {
+                ErrorHandler.PushError(new MyError(currentToken.lexeme, currentToken.lineNum, "Expect keyword writeln"));
+                scanner.PushOneToken(currentToken);
                 return null;
             }
+            // (
+            currentToken = scanner.PullOneToken();
+            if (currentToken.type != TokenType.LEFT_BRACKET)
+            {
+                ErrorHandler.PushError(new MyError(currentToken.lexeme, currentToken.lineNum, "Exepct ("));
+                scanner.PushOneToken(currentToken);
+                return null;
+            }
+            // args
+            args = (Arguments)new Arguments().TryBuild(ref scanner);
+            if (args == null)
+                return null;
+            // )
+            currentToken = scanner.PullOneToken();
+            if (currentToken.type != TokenType.RIGHT_BRACKET)
+            {
+                ErrorHandler.PushError(new MyError(currentToken.lexeme, currentToken.lineNum, "Exepct )"));
+                scanner.PushOneToken(currentToken);
+                return null;
+            }
+
+            return this;
         }
 
         public override void Accept(Visitor visitor)

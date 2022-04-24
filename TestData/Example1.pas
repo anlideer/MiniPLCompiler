@@ -1,3 +1,4 @@
+program Test1;
 begin
 var i, j : integer;
 var r : real;
