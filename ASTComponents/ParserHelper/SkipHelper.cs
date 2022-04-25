@@ -7,6 +7,7 @@ namespace MiniPLCompiler.ASTComponents
     class SkipHelper
     { 
         // general skip
+        // but leave the token here
         public static void SkipTo(ref Scanner scanner, TokenType t)
         {
             Token nextToken = scanner.PullOneToken();

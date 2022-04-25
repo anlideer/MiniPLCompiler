@@ -8,7 +8,7 @@ namespace MiniPLCompiler.ASTComponents
 {
     class PLType : BaseNode
     {
-        public Token type;
+        public Token pltype;
         public Expr expr;   // optional integer expr
         public bool isArray;
 
@@ -36,7 +36,7 @@ namespace MiniPLCompiler.ASTComponents
             if (simpleTypes.Contains(currentToken.type))
             {
                 isArray = false;
-                type = currentToken;
+                pltype = currentToken;
                 return this;
             }
             // array type
@@ -96,7 +96,7 @@ namespace MiniPLCompiler.ASTComponents
                 currentToken = scanner.PullOneToken();
                 if (simpleTypes.Contains(currentToken.type))
                 {
-                    type = currentToken;
+                    pltype = currentToken;
                     return this;
                 }
                 else

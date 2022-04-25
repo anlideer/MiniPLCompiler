@@ -51,6 +51,7 @@ namespace MiniPLCompiler.ASTComponents
                 if (tmp == null)
                     return tmp;
                 terms.Add(tmp);
+                currentToken = scanner.PullOneToken();
             }
             scanner.PushOneToken(currentToken);
 

@@ -28,6 +28,21 @@ namespace MiniPLCompiler.ASTComponents
             {
                 scanner.PushOneToken(currentToken);
                 stat = new Block().TryBuild(ref scanner);
+
+                if (stat == null)
+                {
+                    SkipHelper.SkipToSemi(ref scanner);
+                    return null;
+                }
+                // ;
+                currentToken = scanner.PullOneToken();
+                if (currentToken.type != TokenType.SEMICOLON)
+                {
+                    ErrorHandler.PushError(new MyError(currentToken.lexeme, currentToken.lineNum, "Expect ; after normal block"));
+                    scanner.PushOneToken(currentToken); // tolerant
+                }
+                return this;
+
             }
             // if
             else if (currentToken.type == TokenType.IF)

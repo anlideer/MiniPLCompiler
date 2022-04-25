@@ -28,25 +28,52 @@ namespace MiniPLCompiler.ASTComponents
             {
                 scanner.PushOneToken(currentToken);
                 stat = new StructuredStat().TryBuild(ref scanner);
+                if (stat == null)
+                    return null;
+                else
+                    return this;
             }
             // var
             else if (currentToken.type == TokenType.VAR)
             {
                 scanner.PushOneToken(currentToken);
                 stat = new DefStat().TryBuild(ref scanner);
+                if (stat == null)
+                {
+                    SkipHelper.SkipToSemi(ref scanner);
+                    return null;
+                }
+
+                // ;
+                currentToken = scanner.PullOneToken();
+                if (currentToken.type != TokenType.SEMICOLON)
+                {
+                    ErrorHandler.PushError(new MyError(currentToken.lexeme, currentToken.lineNum, "Expect ; after var-declaration"));
+                    scanner.PushOneToken(currentToken); // tolerant
+                }
+                return this;
             }
             // simple stat
             else
             {
                 scanner.PushOneToken(currentToken);
                 stat = new SimpleStat().TryBuild(ref scanner);
-            }
 
+                if (stat == null)
+                {
+                    SkipHelper.SkipToSemi(ref scanner);
+                    return null;
+                }
 
-            if (stat == null)
-                return null;
-            else
+                // ;
+                currentToken = scanner.PullOneToken();
+                if (currentToken.type != TokenType.SEMICOLON)
+                {
+                    ErrorHandler.PushError(new MyError(currentToken.lexeme, currentToken.lineNum, "Expect ; after simple statement"));
+                    scanner.PushOneToken(currentToken); // tolerant
+                }
                 return this;
+            }
         }
     }
 }

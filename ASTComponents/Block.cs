@@ -31,40 +31,19 @@ namespace MiniPLCompiler.ASTComponents
                 return null;
             }
 
-            // statement
-            Statement tmp = (Statement)new Statement().TryBuild(ref scanner);
-            if (tmp == null)
-                SkipHelper.SkipToSemiOrEnd(ref scanner);
-            else
-                stats.Add(tmp);
-
-            // {; statement}
+            // {statement}
             currentToken = scanner.PullOneToken();
-            bool flag = false;
-            while (currentToken.type == TokenType.SEMICOLON)
+            while (currentToken.type != TokenType.END && currentToken.type != TokenType.END_OF_PROGRAM)
             {
-                // statement or end
-                Token nextToken = scanner.PullOneToken();
-                if (nextToken.type == TokenType.END)
-                {
-                    scanner.PushOneToken(nextToken);
-                    flag = true;
-                    break;
-                }
-                else
-                    scanner.PushOneToken(nextToken);
-
+                scanner.PushOneToken(currentToken);
                 Statement tmps = (Statement)new Statement().TryBuild(ref scanner);
                 if (tmps == null)
-                    SkipHelper.SkipToSemiOrEnd(ref scanner);
+                    SkipHelper.SkipToSemi(ref scanner);
                 else
                     stats.Add(tmps);
 
                 currentToken = scanner.PullOneToken();
             }
-            if (flag)
-                currentToken = scanner.PullOneToken();
-
 
             // end
             if (currentToken.type != TokenType.END)
