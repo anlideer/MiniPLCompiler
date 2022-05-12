@@ -11,6 +11,8 @@ namespace MiniPLCompiler.ASTComponents
         public Expr expr;   // boolean expr
         public Statement thenStat;
         public Statement elseStat;  // optional
+        // for error report
+        public Token ifToken;
 
         public override void Accept(Visitor visitor)
         {
@@ -32,6 +34,7 @@ namespace MiniPLCompiler.ASTComponents
                 scanner.PushOneToken(currentToken);
                 return null;
             }
+            ifToken = currentToken;
 
             // expr
             expr = (Expr)new Expr().TryBuild(ref scanner);

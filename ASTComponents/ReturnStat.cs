@@ -11,9 +11,11 @@ namespace MiniPLCompiler.ASTComponents
         public Token token; // only to provide location to error report
         public Expr expr;
 
+        public VarType ty = VarType.NONE;
+
         public override void Accept(Visitor visitor)
         {
-            throw new NotImplementedException();
+            visitor.VisitReturn(this);
         }
 
         public override void AcceptExe(SimpleInterpreter interpreter)

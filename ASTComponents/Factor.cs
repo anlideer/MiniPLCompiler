@@ -8,11 +8,16 @@ namespace MiniPLCompiler.ASTComponents
     class Factor : BaseNode
     {
         // whether node or literal
-        public BaseNode node;   
+        // call or variable or expr
+        public CallStat callStat;
+        public Variable variable;
+        public Expr expr;
         public Token literal;
         // optional
         public Token ifNot;
         public Token ifSize;
+
+        public VarType ty;
 
 
         public override BaseNode TryBuild(ref Scanner scanner)
@@ -21,13 +26,12 @@ namespace MiniPLCompiler.ASTComponents
             // [not]
             if (currentToken.type == TokenType.NOT)
             {
-                ifNot = currentToken;
-                // factor
-                node = new Factor().TryBuild(ref scanner);
-                if (node == null)
-                    return null;
+                if (ifNot != null)
+                    ifNot = null;
                 else
-                    return this;
+                    ifNot = currentToken;
+                // factor
+                TryBuild(ref scanner);
             }
 
             // id
@@ -40,8 +44,8 @@ namespace MiniPLCompiler.ASTComponents
                 {
                     scanner.PushOneToken(nextToken);
                     scanner.PushOneToken(currentToken);
-                    node = new CallStat().TryBuild(ref scanner);
-                    if (node == null)
+                    callStat = (CallStat) new CallStat().TryBuild(ref scanner);
+                    if (callStat == null)
                         return null;
                 }
                 // variable
@@ -49,8 +53,8 @@ namespace MiniPLCompiler.ASTComponents
                 {
                     scanner.PushOneToken(nextToken);
                     scanner.PushOneToken(currentToken);
-                    node = new Variable().TryBuild(ref scanner);
-                    if (node == null)
+                    variable = (Variable) new Variable().TryBuild(ref scanner);
+                    if (variable == null)
                         return null;
                 }    
             }
@@ -64,8 +68,8 @@ namespace MiniPLCompiler.ASTComponents
             else if (currentToken.type == TokenType.LEFT_BRACKET)
             {
                 scanner.PushOneToken(currentToken);
-                node = new Expr().TryBuild(ref scanner);
-                if (node == null)
+                expr = (Expr) new Expr().TryBuild(ref scanner);
+                if (expr == null)
                     return null;
             }
             // error
@@ -102,7 +106,7 @@ namespace MiniPLCompiler.ASTComponents
 
         public override void Accept(Visitor visitor)
         {
-            throw new NotImplementedException();
+            visitor.VisitFactor(this);
         }
 
         public override void AcceptExe(SimpleInterpreter interpreter)

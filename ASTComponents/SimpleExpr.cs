@@ -13,9 +13,11 @@ namespace MiniPLCompiler.ASTComponents
         public List<Token> ops = new List<Token>();
         public List<Term> terms = new List<Term> ();
 
+        public VarType ty;
+
         public override void Accept(Visitor visitor)
         {
-            throw new NotImplementedException();
+            visitor.VisitSimpleExpr(this);
         }
 
         public override void AcceptExe(SimpleInterpreter interpreter)

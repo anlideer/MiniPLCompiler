@@ -12,9 +12,11 @@ namespace MiniPLCompiler.ASTComponents
         public Expr expr;   // optional integer expr
         public bool isArray;
 
+        public VarType ty;
+
         public override void Accept(Visitor visitor)
         {
-            throw new NotImplementedException();
+            visitor.VisitPLType(this);
         }
 
         public override void AcceptExe(SimpleInterpreter interpreter)

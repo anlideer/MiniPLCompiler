@@ -13,6 +13,7 @@ namespace MiniPLCompiler
         public CharacterHandler(string filePath)
         {
             sourceStr = File.ReadAllText(filePath);
+            sourceStr = sourceStr.ToLower();
         }
 
         // read one character forward

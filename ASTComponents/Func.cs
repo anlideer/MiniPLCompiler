@@ -12,10 +12,12 @@ namespace MiniPLCompiler.ASTComponents
         public Parameters parameters;
         public Block block;
         public bool isFunc;
+        public PLType returnedType;
+        public VarType ty;
 
         public override void Accept(Visitor visitor)
         {
-            throw new NotImplementedException();
+            visitor.VisitFunction(this);
         }
 
         public override void AcceptExe(SimpleInterpreter interpreter)
@@ -47,16 +49,17 @@ namespace MiniPLCompiler.ASTComponents
             if (currentToken.type != TokenType.IDENTIFIER)
             {
                 ErrorHandler.PushError(new MyError(currentToken.lexeme, currentToken.lineNum, "Expect identifier"));
-                scanner.PushOneToken(currentToken);
+                SkipHelper.SkipToEndSemi(ref scanner, currentToken);
                 return null;
             }
             iden = currentToken;
 
             // (
+            currentToken = scanner.PullOneToken();
             if (currentToken.type != TokenType.LEFT_BRACKET)
             {
                 ErrorHandler.PushError(new MyError(currentToken.lexeme, currentToken.lineNum, "Expect ("));
-                scanner.PushOneToken(currentToken);
+                SkipHelper.SkipToEndSemi(ref scanner, currentToken);
                 return null;
             }
 
@@ -64,23 +67,45 @@ namespace MiniPLCompiler.ASTComponents
             parameters = (Parameters)new Parameters().TryBuild(ref scanner);
             if (parameters == null)
             {
-                SkipHelper.SkipToSemi(ref scanner);
+                SkipHelper.SkipToEndSemi(ref scanner);
                 return null;
             }
 
             // )
+            currentToken = scanner.PullOneToken();
             if (currentToken.type != TokenType.RIGHT_BRACKET)
             {
                 ErrorHandler.PushError(new MyError(currentToken.lexeme, currentToken.lineNum, "Expect )"));
-                scanner.PushOneToken(currentToken);
+                SkipHelper.SkipToEndSemi(ref scanner, currentToken);
                 return null;
             }
 
+            // function's type
+            if (isFunc)
+            {
+                // :
+                currentToken = scanner.PullOneToken();
+                if (currentToken.type != TokenType.COLON)
+                {
+                    ErrorHandler.PushError(new MyError(currentToken.lexeme, currentToken.lineNum, "Expect : because it's function"));
+                    SkipHelper.SkipToEndSemi(ref scanner, currentToken);
+                    return null;
+                }
+                // type
+                returnedType = (PLType) new PLType().TryBuild(ref scanner);
+                if (returnedType == null)
+                {
+                    SkipHelper.SkipToEndSemi(ref scanner);
+                    return null;
+                }
+            }
+
             // ;
+            currentToken = scanner.PullOneToken();
             if (currentToken.type != TokenType.SEMICOLON)
             {
                 ErrorHandler.PushError(new MyError(currentToken.lexeme, currentToken.lineNum, "Expect ;"));
-                scanner.PushOneToken(currentToken);
+                SkipHelper.SkipToEndSemi(ref scanner, currentToken);
                 return null;
             }
 
@@ -88,11 +113,12 @@ namespace MiniPLCompiler.ASTComponents
             block = (Block)new Block().TryBuild(ref scanner);
             if (block == null)
             {
-                SkipHelper.SkipToSemi(ref scanner);
+                SkipHelper.SkipToEndSemi(ref scanner);
                 return null;
             }
 
             // ;
+            currentToken = scanner.PullOneToken();
             if (currentToken.type != TokenType.SEMICOLON)
             {
                 ErrorHandler.PushError(new MyError(currentToken.lexeme, currentToken.lineNum, "Expect ;"));

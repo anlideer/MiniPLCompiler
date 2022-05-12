@@ -10,10 +10,11 @@ namespace MiniPLCompiler.ASTComponents
         public Factor factor;
         public List<Token> ops = new List<Token> ();
         public List<Factor> facs = new List<Factor>();
+        public VarType ty;
 
         public override void Accept(Visitor visitor)
         {
-            throw new NotImplementedException();
+            visitor.VisitTerm(this);
         }
 
         public override void AcceptExe(SimpleInterpreter interpreter)

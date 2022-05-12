@@ -12,7 +12,7 @@ namespace MiniPLCompiler
 
         // One character for one token (not ambigious)
         private Dictionary<char, TokenType> singleSymbol = new Dictionary<char, TokenType> {
-            { '+', TokenType.ADD_OPERATOR}, { '-', TokenType.ADD_OPERATOR},
+            { '+', TokenType.ADD_OPERATOR}, { '-', TokenType.ADD_OPERATOR}, 
             { '*', TokenType.MULTIPLY_OPERATOR}, { ';', TokenType.SEMICOLON}, { '%', TokenType.MULTIPLY_OPERATOR},
             { '=', TokenType.RELATIONAL_OPERATOR},
             { '(', TokenType.LEFT_BRACKET}, { ')', TokenType.RIGHT_BRACKET},
@@ -151,6 +151,12 @@ namespace MiniPLCompiler
                     if (t != null)
                         return t;
                 }
+                // {*...*} comments
+                else if (current_char == '{')
+                {
+                    cStream.PushOne();
+                    HandleComments();
+                }
                 else
                 {
                     ErrorHandler.PushError(new MyError(current_char.ToString(), lineCnt, "Unacceptable token."));
@@ -161,6 +167,38 @@ namespace MiniPLCompiler
 
             // if '\0'
             return new Token(TokenType.END_OF_PROGRAM, "", lineCnt);
+        }
+
+
+        // handle multiple lines comments
+        private void HandleComments()
+        {
+            char last_char = cStream.PullOne();
+            char current_char = cStream.PullOne();
+            //*...*}
+            if (current_char != '*')
+            {
+                ErrorHandler.PushError(new MyError(last_char.ToString(), lineCnt, "Unacceptable token"));
+                cStream.PushOne();
+                return;
+            }
+
+            // skip to *}
+            current_char = cStream.PullOne();
+            while (true)
+            {
+                if (current_char == '*')
+                {
+                    current_char = cStream.PullOne();
+                    if (current_char == '}')
+                        break;
+                }
+                else
+                {
+                    current_char = cStream.PullOne();
+                }
+            }
+
         }
 
 
@@ -195,26 +233,6 @@ namespace MiniPLCompiler
                     current_char = cStream.PullOne();
                 }
                 lineCnt++;
-            }
-            else if (current_char == '*')
-            {
-                // ignore until */
-                while (current_char != '\0')
-                {
-                    current_char = cStream.PullOne();
-                    if (current_char == '*')
-                    {
-                        // preread again
-                        current_char = cStream.PullOne();
-                        if (current_char == '/')
-                            break;  // end of comment
-                        else
-                            cStream.PushOne();
-                    }
-                    else if (current_char == '\n')
-                        lineCnt++;
-                    // else pass
-                }
             }
             // just div
             else

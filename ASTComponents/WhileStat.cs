@@ -10,10 +10,12 @@ namespace MiniPLCompiler.ASTComponents
     {
         public Expr expr;   // boolean expr
         public Statement stat;
+        public Token whileToken;
+        
 
         public override void Accept(Visitor visitor)
         {
-            throw new NotImplementedException();
+            visitor.VisitWhile(this);
         }
 
         public override void AcceptExe(SimpleInterpreter interpreter)
@@ -31,6 +33,7 @@ namespace MiniPLCompiler.ASTComponents
                 scanner.PushOneToken(currentToken);
                 return null;
             }
+            whileToken = currentToken;
 
             // expr
             expr = (Expr)new Expr().TryBuild(ref scanner);

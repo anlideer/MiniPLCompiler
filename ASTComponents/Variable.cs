@@ -10,6 +10,8 @@ namespace MiniPLCompiler.ASTComponents
         public Token iden;
         public Expr expr;   // optional integer expr
 
+        public VarType ty;
+
         public override void Accept(Visitor visitor)
         {
             throw new NotImplementedException();

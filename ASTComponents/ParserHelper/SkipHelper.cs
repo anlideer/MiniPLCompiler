@@ -73,6 +73,25 @@ namespace MiniPLCompiler.ASTComponents
             }
         }
 
+        public static void SkipToEndSemi(ref Scanner scanner, Token nextToken=null)
+        {
+            if (nextToken == null)
+                nextToken = scanner.PullOneToken();
+            while(nextToken.type != TokenType.END_OF_PROGRAM)
+            {
+                if (nextToken.type == TokenType.END)
+                {
+                    nextToken = scanner.PullOneToken();
+                    if (nextToken.type == TokenType.SEMICOLON)
+                        return;
+                    else
+                        continue; 
+                }
+                nextToken = scanner.PullOneToken();
+            }
+
+        }
+
 
     }
 }

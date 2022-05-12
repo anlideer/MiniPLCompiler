@@ -11,6 +11,8 @@ namespace MiniPLCompiler.ASTComponents
         public Token iden;
         public PLType pltype;
         public bool byRef;
+
+        public VarType ty;
     }
 
     class Parameters : BaseNode
@@ -19,7 +21,7 @@ namespace MiniPLCompiler.ASTComponents
 
         public override void Accept(Visitor visitor)
         {
-            throw new NotImplementedException();
+            visitor.VisitParameter(this);
         }
 
         public override void AcceptExe(SimpleInterpreter interpreter)

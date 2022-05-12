@@ -11,6 +11,7 @@ namespace MiniPLCompiler.ASTComponents
         public Token op;
         public SimpleExpr right;
 
+        public VarType ty;
 
         public override BaseNode TryBuild(ref Scanner scanner)
         {

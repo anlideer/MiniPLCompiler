@@ -11,9 +11,11 @@ namespace MiniPLCompiler.ASTComponents
         public Token iden;
         public Arguments args;
 
+        public VarType ty = VarType.NONE;
+
         public override void Accept(Visitor visitor)
         {
-            throw new NotImplementedException();
+            visitor.VisitCall(this);
         }
 
         public override void AcceptExe(SimpleInterpreter interpreter)
@@ -31,6 +33,7 @@ namespace MiniPLCompiler.ASTComponents
                 scanner.PushOneToken(currentToken);
                 return null;
             }
+            iden = currentToken;
 
             // (
             currentToken = scanner.PullOneToken();

@@ -7,6 +7,7 @@ namespace MiniPLCompiler.ASTComponents
     class PrintStat : BaseNode
     {
         public Arguments args;
+        public Token printToken;
 
         public override BaseNode TryBuild(ref Scanner scanner)
         {
@@ -18,6 +19,7 @@ namespace MiniPLCompiler.ASTComponents
                 scanner.PushOneToken(currentToken);
                 return null;
             }
+            printToken = currentToken;
             // (
             currentToken = scanner.PullOneToken();
             if (currentToken.type != TokenType.LEFT_BRACKET)
