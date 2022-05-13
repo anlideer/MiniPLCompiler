@@ -16,7 +16,7 @@ namespace MiniPLCompiler.ASTComponents
 
         public override void Accept(Visitor visitor)
         {
-            throw new NotImplementedException();
+            visitor.VisitIf(this);
         }
 
         public override void AcceptExe(SimpleInterpreter interpreter)
