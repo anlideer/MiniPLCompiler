@@ -23,6 +23,10 @@ namespace MiniPLCompiler
 
         private int currentScope;   // scope level
         private List<Dictionary<string, string>> vars = new List<Dictionary<string, string>> ();    // local variables
+        private Dictionary<string, Func> functions = new Dictionary<string, Func>();    // still, sometimes we need the info
+        private HashSet<string> byRefVars = new HashSet<string>();  // all the variables (in C) passed by ref
+                                                                    // (because in C we generate new local var when a variable is redefined in scope,
+                                                                    // (so this var name is really the parameter) (cleared when leaving func)
 
         private int varCounter = 0; // use for variable name generating
         private int flagCounter = 0;    // use for flag name generating (for if and while
@@ -137,12 +141,13 @@ namespace MiniPLCompiler
             else if (v1.ty == VarType.REAL && v2.ty == VarType.INT)
             {
                 string newv = GetNewVarName();
-                AddLine(string.Format("float {0} = (float){1};", newv, v2.cName));
+                AddLine(string.Format("float {0} = (float){1};", newv, v2.cName));  // TODO: simplify it to one operation once!
                 MyVariable tmpv = new MyVariable(newv, VarType.REAL);
                 vStack.Push(tmpv);
                 vStack.Push(v1);
             }
         }
+
 
 
         // term
@@ -215,16 +220,42 @@ namespace MiniPLCompiler
             else if (fac.variable != null)
             {
                 fac.variable.AcceptExe(this);
-                // use
+                // arr[index]
                 if (fac.variable.expr != null)
                 {
-                    // arr[index]
                     var ind = vStack.Pop();
                     string newv = GetNewVarName();
                     string arrName = GetVar(fac.variable.iden.lexeme);
-                    AddLine(string.Format("{0} = {1}[{2}];", newv, arrName, ind.cName));
-                    vStack.Push(new MyVariable(newv, fac.variable.ty));
+                    // declare
+                    string newtype = cTypeName[fac.ty]; // TODO: check if all new vars are declared (can write a helper function to do this)
+                    if (fac.ty == VarType.STR || fac.ty == VarType.STR_ARR)
+                        newtype = "char *";
+                    AddLine(string.Format("{0} {1};", newtype, newv));
+                    // if by ref
+                    if (byRefVars.Contains(arrName))
+                        AddLine(string.Format("{0} = *{1}[{2}];", newv, arrName, ind.cName));
+                    else
+                        AddLine(string.Format("{0} = {1}[{2}];", newv, arrName, ind.cName));
+                    vStack.Push(new MyVariable(newv, fac.ty));
                 }
+                // simple type variable
+                else
+                {
+                    string newv = GetNewVarName();
+                    string vname = GetVar(fac.variable.iden.lexeme);
+                    // declare
+                    string newtype = cTypeName[fac.ty];
+                    if (fac.ty == VarType.STR || fac.ty == VarType.STR_ARR)
+                        newtype = "char *";
+                    AddLine(string.Format("{0} {1};", newtype, newv));
+                    // if by ref
+                    if (byRefVars.Contains(vname))
+                        AddLine(string.Format("{0} = *{1};", newv, vname));
+                    else
+                        AddLine(string.Format("{0} = {1};", newv, vname));
+                    vStack.Push(new MyVariable(newv, fac.ty));
+                }
+
             }
 
             // not
@@ -367,7 +398,17 @@ namespace MiniPLCompiler
                 foreach(var token in d.idens)
                 {
                     string tmp = GetNewVarName();
-                    res += string.Format(" {0}{1}[{2}],", star, tmp, d.idenType.expr);
+                    // if expr
+                    if (d.idenType.expr != null)
+                    {
+                        var arrSize = vStack.Pop();
+                        res += string.Format(" {0}{1}[{2}],", star, tmp, arrSize.cName);
+                    }
+                    else
+                    {
+                        res += string.Format(" {0}{1}[],", star, tmp);
+                    }
+
                     // map
                     vars[currentScope][token.lexeme] = tmp;
                 }
@@ -407,7 +448,11 @@ namespace MiniPLCompiler
             {
                 var val = vStack.Pop();
                 string vname = GetVar(a.variable.iden.lexeme);
-                AddLine(string.Format("{0} = {1};", vname, val.cName));
+                // if by ref
+                if (byRefVars.Contains(vname))
+                    AddLine(string.Format("*{0} = {1};", vname, val.cName));
+                else
+                    AddLine(string.Format("{0} = {1};", vname, val.cName));
             }
             // arr
             else
@@ -468,27 +513,32 @@ namespace MiniPLCompiler
             foreach(var v in r.vars)
             {
                 v.AcceptExe(this);
+                // if by ref
+                string refStr = "";
+                if (byRefVars.Contains(GetVar(v.iden.lexeme)))
+                    refStr = "*";
+
                 // arr[ind]
                 if (v.expr != null)
                 {
                     v.expr.AcceptExe(this);
                     var ind = vStack.Pop();
                     if (v.ty == VarType.INT || v.ty == VarType.BOOL)
-                        AddLine(string.Format("scanf(\"%d\", {0}[{1}]);", GetVar(v.iden.lexeme), ind.cName));
+                        AddLine(string.Format("scanf(\"%d\", {2}{0}[{1}]);", GetVar(v.iden.lexeme), ind.cName, refStr));
                     else if (v.ty == VarType.STR)
-                        AddLine(string.Format("scanf(\"%s\", {0}[{1}]);", GetVar(v.iden.lexeme), ind.cName));
+                        AddLine(string.Format("scanf(\"%s\", {2}{0}[{1}]);", GetVar(v.iden.lexeme), ind.cName, refStr));
                     else
-                        AddLine(string.Format("scanf(\"%f\", {0}[{1}]);", GetVar(v.iden.lexeme), ind.cName));
+                        AddLine(string.Format("scanf(\"%f\", {2}{0}[{1}]);", GetVar(v.iden.lexeme), ind.cName, refStr));
                 }
                 // simple
                 else
                 {
                     if (v.ty == VarType.INT || v.ty == VarType.BOOL)
-                        AddLine(string.Format("scanf(\"%d\", {0});", GetVar(v.iden.lexeme)));
+                        AddLine(string.Format("scanf(\"%d\", {1}{0});", GetVar(v.iden.lexeme), refStr));
                     else if (v.ty == VarType.STR)
-                        AddLine(string.Format("scanf(\"%s\", {0});", GetVar(v.iden.lexeme)));
+                        AddLine(string.Format("scanf(\"%s\", {1}{0});", GetVar(v.iden.lexeme), refStr));
                     else
-                        AddLine(string.Format("scanf(\"%f\", {0});", GetVar(v.iden.lexeme)));
+                        AddLine(string.Format("scanf(\"%f\", {1}{0});", GetVar(v.iden.lexeme), refStr));
                 }
             }
         }
@@ -572,13 +622,15 @@ namespace MiniPLCompiler
         }
 
         // block
-        public void ExeBlock(Block b)
+        public void ExeBlock(Block b, bool fromFunc=false)
         {
             // just add scope, and accept. (no need for {} because if and while are all if-goto structure now)
-            EnterScope();
+            if (!fromFunc)
+                EnterScope();
             foreach (var s in b.stats)
                 s.AcceptExe(this);
-            ExitScope();
+            if (!fromFunc)
+                ExitScope();
         }
 
         // structured statement
@@ -594,6 +646,120 @@ namespace MiniPLCompiler
             stat.stat.AcceptExe(this);
         }
 
+        // parameter
+        public void ExeParameters(Parameters p)
+        {
+            // pass, func's work
+        }
+
+        // func & procedure
+        public void ExeFunc(Func f)
+        {
+            functions[f.iden.lexeme] = f;
+            EnterScope();
+            // return type
+            string funcTypeStr;
+            if (f.isFunc)
+            {
+                f.returnedType.AcceptExe(this);
+                // simple type
+                if (f.returnedType.ty == VarType.INT || f.returnedType.ty == VarType.BOOL || f.returnedType.ty == VarType.REAL)
+                    funcTypeStr = cTypeName[f.returnedType.ty];
+                else if (f.returnedType.ty == VarType.STR)
+                    funcTypeStr = "char* ";
+                // arr
+                else
+                {
+                    if (f.returnedType.ty == VarType.STR_ARR)
+                        funcTypeStr = "char* ";
+                    else
+                        funcTypeStr = cTypeName[f.returnedType.ty];
+                    // get [...]
+                    if (f.returnedType.expr != null)
+                    {
+                        var v = vStack.Pop();
+                        funcTypeStr += string.Format("[{0}] ", v.cName);
+                    }
+                    else
+                    {
+                        funcTypeStr += "[]";
+                    }
+                    
+                }
+            }
+            else
+            {
+                funcTypeStr = "void";
+            }
+
+            // parameters
+            List<string> paramList = new List<string>();
+            foreach(Param p in f.parameters.parameters)
+            {
+                string currentp;
+                string star = "";
+                if (p.byRef)
+                    star = "*";
+                p.pltype.AcceptExe(this);
+                // array
+                if (p.pltype.isArray)
+                {
+                    if (p.pltype.expr != null)
+                    {
+                        var arrSize = vStack.Pop();
+                        if (p.ty == VarType.STR_ARR)
+                            currentp = string.Format("char *{0}{1}[{2}]", star, p.iden.lexeme, arrSize.cName);
+                        else
+                            currentp = string.Format("{0} {1}{2}[{3}]", cTypeName[p.ty], star, p.iden.lexeme, arrSize.cName);
+                    }
+                    else
+                    {
+                        if (p.ty == VarType.STR_ARR)
+                            currentp = string.Format("char *{0}{1}[]", star, p.iden.lexeme);
+                        else
+                            currentp = string.Format("{0} {1}{2}[]", cTypeName[p.ty], star, p.iden.lexeme);
+                    }       
+
+                }
+                // simple type
+                else
+                {
+                    if (p.ty == VarType.STR)
+                    {
+                        currentp = string.Format("char *{0}{1}", star, p.iden.lexeme);
+                    }
+                    else
+                    {
+                        currentp = string.Format("{0} {1}{2}", cTypeName[p.ty], star, p.iden.lexeme);
+                    }
+                }
+
+                vars[currentScope][p.iden.lexeme] = p.iden.lexeme;
+                paramList.Add(currentp);
+            }
+
+            // handle param str
+            string pStr = "";
+            foreach(string s in paramList)
+            {
+                pStr += s + ",";
+            }
+            if (pStr.Length > 0)
+                pStr.Remove(pStr.Length - 1);   // remove extrea ,
+
+            // finally, really define a function
+            AddLine(string.Format("{0} {1}({2}){", funcTypeStr, f.iden.lexeme, pStr));
+
+            // enter block
+            ExeBlock(f.block, true);
+
+            // end
+            AddLine("}");
+
+            byRefVars.Clear();
+            ExitScope();
+
+        }
 
 
     }
