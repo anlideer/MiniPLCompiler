@@ -26,7 +26,7 @@ namespace MiniPLCompiler
 
                 scanner = new Scanner(Path.Combine("..", "..", "..", "TestData", "Example1.pas"));
                 Parser parser = new Parser(scanner);
-                var pro = parser.BuildAST();
+                PLProgram pro = parser.BuildAST();
                 Visitor visitor = new Visitor();
                 pro.Accept(visitor);
                 ErrorHandler.PrintErrors();
@@ -34,6 +34,8 @@ namespace MiniPLCompiler
                 //ProgramEntry.ExeProgram(System.IO.Path.Combine("..", "..", "..", "TestData", "Example1.pas"));
                 //ProgramEntry.ExeProgram(System.IO.Path.Combine("..", "..", "..", "TestData", "Example2.pas"));
                 //ProgramEntry.ExeProgram(System.IO.Path.Combine("..", "..", "..", "TestData", "Example3.pas"));
+
+
             }
         }
 

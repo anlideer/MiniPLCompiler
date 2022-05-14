@@ -8,7 +8,7 @@ namespace MiniPLCompiler.ASTComponents
     class Factor : BaseNode
     {
         // whether node or literal
-        // call or variable or expr
+        // call or variable or expr or literal
         public CallStat callStat;
         public Variable variable;
         public Expr expr;
@@ -111,7 +111,7 @@ namespace MiniPLCompiler.ASTComponents
 
         public override void AcceptExe(SimpleInterpreter interpreter)
         {
-            throw new NotImplementedException();
+            interpreter.ExeFactor(this);
         }
 
 

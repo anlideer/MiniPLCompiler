@@ -17,7 +17,7 @@ namespace MiniPLCompiler.ASTComponents
 
         public override void AcceptExe(SimpleInterpreter interpreter)
         {
-            throw new NotImplementedException();
+            interpreter.ExeStructStat(this);
         }
 
         public override BaseNode TryBuild(ref Scanner scanner)
