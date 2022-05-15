@@ -9,7 +9,7 @@ namespace MiniPLCompiler.ASTComponents
     class ReturnStat : BaseNode
     {
         public Token token; // only to provide location to error report
-        public Expr expr;
+        public Expr expr;   // optional
 
         public VarType ty = VarType.NONE;
 
@@ -20,7 +20,7 @@ namespace MiniPLCompiler.ASTComponents
 
         public override void AcceptExe(SimpleInterpreter interpreter)
         {
-            throw new NotImplementedException();
+            interpreter.ExeReturn(this);
         }
 
         public override BaseNode TryBuild(ref Scanner scanner)

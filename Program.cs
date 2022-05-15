@@ -24,18 +24,20 @@ namespace MiniPLCompiler
                     t = scanner.PullOneToken();
                 }
 
-                scanner = new Scanner(Path.Combine("..", "..", "..", "TestData", "Example1.pas"));
+                scanner = new Scanner(Path.Combine("..", "..", "..", "TestData", "Example2.pas"));
                 Parser parser = new Parser(scanner);
                 PLProgram pro = parser.BuildAST();
                 Visitor visitor = new Visitor();
                 pro.Accept(visitor);
                 ErrorHandler.PrintErrors();
 
-                //ProgramEntry.ExeProgram(System.IO.Path.Combine("..", "..", "..", "TestData", "Example1.pas"));
-                //ProgramEntry.ExeProgram(System.IO.Path.Combine("..", "..", "..", "TestData", "Example2.pas"));
-                //ProgramEntry.ExeProgram(System.IO.Path.Combine("..", "..", "..", "TestData", "Example3.pas"));
-
-
+                // continue with the backend
+                if (ErrorHandler.IsEmpty())
+                {
+                    SimpleInterpreter interpreter = new SimpleInterpreter();
+                    pro.AcceptExe(interpreter);
+                    Console.WriteLine(interpreter.GetOutput());
+                }
             }
         }
 

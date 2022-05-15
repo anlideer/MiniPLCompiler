@@ -21,6 +21,7 @@ namespace MiniPLCompiler
     class SimpleInterpreter
     {
 
+        public string programName;
         private int currentScope;   // scope level
         private List<Dictionary<string, string>> vars = new List<Dictionary<string, string>> ();    // local variables
         private Dictionary<string, Func> functions = new Dictionary<string, Func>();    // still, sometimes we need the info
@@ -41,6 +42,7 @@ namespace MiniPLCompiler
             {VarType.BOOL, "int" }, {VarType.BOOL_ARR, "int"},
             {VarType.STR, "char" }, {VarType.STR_ARR, "char"},  // use with caution
         };
+        
 
         
         public SimpleInterpreter()
@@ -53,6 +55,11 @@ namespace MiniPLCompiler
             AddLine("#include <stdio.h>");
             AddLine("#include <string.h>");
         }
+
+        public string GetOutput()
+        {
+            return outc;
+        }
         
         // helper - add one line to the output (automatically add tabs)
         private void AddLine(string s)
@@ -62,6 +69,7 @@ namespace MiniPLCompiler
                 res += "\t";
             res += s + "\n";
             outc += res;
+            //Console.WriteLine(res);
         }
 
         // Enter scope
@@ -118,6 +126,7 @@ namespace MiniPLCompiler
             flagCounter++;
             return res;
         }
+
 
         // helper - dynamic type change (int<->float)
         private void FixTop2Type()
@@ -351,7 +360,12 @@ namespace MiniPLCompiler
                 var v1 = vStack.Pop();
                 var v2 = vStack.Pop();
                 string tmpb = GetNewVarName();
-                AddLine(string.Format("int {0} = {1} {2} {3};", tmpb, v2.cName, expression.op.lexeme, v1.cName));
+                string op = expression.op.lexeme;
+                if (op == "=")
+                    op = "==";
+                else if (op == "<>")
+                    op = "!=";
+                AddLine(string.Format("int {0} = {1} {2} {3};", tmpb, v2.cName, op, v1.cName));
                 vStack.Push(new MyVariable(tmpb, VarType.BOOL));
             }
         }
@@ -461,7 +475,10 @@ namespace MiniPLCompiler
                 var ind = vStack.Pop();
                 var val = vStack.Pop();
                 string vname = GetVar(a.variable.iden.lexeme);
-                AddLine(string.Format("{0}[{1}] = {2};", vname, ind.cName, val.cName));
+                if (byRefVars.Contains(vname))
+                    AddLine(string.Format("*{0}[{1}] = {2};", vname, ind.cName, val.cName));
+                else
+                    AddLine(string.Format("{0}[{1}] = {2};", vname, ind.cName, val.cName));
             }
         }
 
@@ -503,7 +520,7 @@ namespace MiniPLCompiler
                 res.Remove(res.Length - 1); // delete space
             if (argstr.Length > 0)
                 argstr.Remove(argstr.Length - 1);   // delete ,
-            AddLine(string.Format("printf(\"{0}\n\", {1});", res, argstr));
+            AddLine(string.Format("printf(\"{0}\\n\", {1});", res, argstr));
         }
 
         // read
@@ -550,13 +567,19 @@ namespace MiniPLCompiler
             List<MyVariable> myArgs = new List<MyVariable>();
             while (vStack.Count > 0)
             {
-                myArgs.Add(vStack.Pop());
+                myArgs.Insert(0, vStack.Pop());
             }
 
             string argstr = "";
-            for (int i = myArgs.Count - 1; i >= 0; i--)
+            Func f = functions[stat.iden.lexeme];
+            for (int i = 0; i < myArgs.Count; i++)
             {
-                argstr += myArgs[i].cName + ",";
+                // check if by ref
+                Param p = f.parameters.parameters[i];
+                if (p.byRef)
+                    argstr += "&" + myArgs[i].cName + ",";
+                else
+                    argstr += myArgs[i].cName + ",";
             }
             if (argstr.Length > 0)
                 argstr.Remove(argstr.Length - 1);   // delete ,
@@ -567,7 +590,7 @@ namespace MiniPLCompiler
         // simple statement
         public void ExeSimpleStat(SimpleStat stat)
         {
-            stat.AcceptExe(this);
+            stat.stat.AcceptExe(this);
         }
 
         // if statement
@@ -583,7 +606,7 @@ namespace MiniPLCompiler
             string L2 = GetNewFlagName();
             var condition = vStack.Pop();
             // condition
-            AddLine(string.Format("if ({0}) {goto {1};}", condition.cName, L1));
+            AddLine(string.Format("if ({0}) {{goto {1};}}", condition.cName, L1));
             // else
             if (stat.elseStat != null)
             {
@@ -615,7 +638,7 @@ namespace MiniPLCompiler
             var condition = vStack.Pop();
             AddLine(string.Format("{0} = !{1};", negvar, condition.cName));
             string L2 = GetNewFlagName();
-            AddLine(string.Format("if({0}) {goto {1};}", negvar, L2));
+            AddLine(string.Format("if({0}) {{ goto {1};}}", negvar, L2));
             stat.stat.AcceptExe(this);  // while stat
             AddLine(string.Format("goto {0};", L1));
             AddLine(string.Format("{0}:", L2));
@@ -655,7 +678,6 @@ namespace MiniPLCompiler
         // func & procedure
         public void ExeFunc(Func f)
         {
-            functions[f.iden.lexeme] = f;
             EnterScope();
             // return type
             string funcTypeStr;
@@ -748,7 +770,7 @@ namespace MiniPLCompiler
                 pStr.Remove(pStr.Length - 1);   // remove extrea ,
 
             // finally, really define a function
-            AddLine(string.Format("{0} {1}({2}){", funcTypeStr, f.iden.lexeme, pStr));
+            AddLine(string.Format("{0} {1}({2})}}", funcTypeStr, f.iden.lexeme, pStr));
 
             // enter block
             ExeBlock(f.block, true);
@@ -761,6 +783,38 @@ namespace MiniPLCompiler
 
         }
 
+        // return statement
+        public void ExeReturn(ReturnStat stat)
+        {
+            if (stat.expr != null)
+            {
+                stat.expr.AcceptExe(this);
+                var v = vStack.Pop();
+                AddLine(string.Format("return {0};", v.cName));
+            }
+            else
+            {
+                AddLine("return;");
+            }
+        }
+
+        // program
+        public void ExePLProgram(PLProgram pro)
+        {
+            programName = pro.iden.lexeme;
+            // TODO: first scan all functions, store Func in dic, then start processing
+            // TODO: put func declaration header at the start
+            foreach (var func in pro.funcs)
+                functions[func.iden.lexeme] = func;
+            // funcs
+            foreach (var func in pro.funcs)
+                func.AcceptExe(this);
+            // main block
+            AddLine("int main() {");
+            pro.mainBlock.AcceptExe(this);
+            AddLine("\treturn 0;");
+            AddLine("}");
+        }
 
     }
 }
