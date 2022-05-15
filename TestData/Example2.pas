@@ -14,7 +14,15 @@ end;
 begin
 var i : integer;
 i := 0;
-while i <= 19 do writeln (F (i));
+while i <= 19 do 
+begin
+writeln (F (i));
+i := i + 1;
+end;
 i := 0;
-while i <= 19 do writeln (M (i));
+while i <= 19 do 
+begin
+writeln (M (i));
+i := i + 1;
+end;
 end. 

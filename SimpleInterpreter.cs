@@ -65,8 +65,8 @@ namespace MiniPLCompiler
         private void AddLine(string s)
         {
             string res = "";
-            for (int j = 0; j < currentScope; j++)
-                res += "\t";
+            /*for (int j = 0; j < currentScope; j++)
+                res += "\t";*/
             res += s + "\n";
             outc += res;
             //Console.WriteLine(res);
@@ -142,7 +142,7 @@ namespace MiniPLCompiler
             else if (v1.ty == VarType.INT && v2.ty == VarType.REAL)
             {
                 string newv = GetNewVarName();
-                AddLine(string.Format("float {0} = (float){1}", newv, v1.cName));
+                AddLine(string.Format("float {0} = (float){1};", newv, v1.cName));
                 MyVariable tmpv = new MyVariable(newv, VarType.REAL);
                 vStack.Push(v2);
                 vStack.Push(tmpv);
@@ -171,16 +171,33 @@ namespace MiniPLCompiler
                 {
                     var v1 = vStack.Pop();
                     var v2 = vStack.Pop();
-                    AddLine(string.Format("{0} = {0} & {1};", v1.cName, v2.cName));
-                    vStack.Push(v1);
+                    string newv = GetNewVarName();
+                    AddLine(string.Format("int {0};", newv));
+                    AddLine(string.Format("{2} = {0} & {1};", v1.cName, v2.cName, newv));
+                    vStack.Push(new MyVariable(newv, VarType.BOOL));
                 }
                 // *, /, %
                 else
                 {
                     var v1 = vStack.Pop();
                     var v2 = vStack.Pop();
-                    AddLine(string.Format("{0} = {0} {1} {2};", v2.cName, t.ops[i].lexeme, v1.cName));
-                    vStack.Push(v2);
+                    string newv = GetNewVarName();
+                    if (v1.ty == VarType.REAL || v2.ty == VarType.REAL)
+                    {
+                        
+                        AddLine(string.Format("float {0};", newv));
+                        AddLine(string.Format("{3} = {0} {1} {2};", v2.cName, t.ops[i].lexeme, v1.cName, newv));
+                        vStack.Push(new MyVariable(newv,VarType.REAL));
+                    }
+                    else
+                    {
+                        AddLine(string.Format("int {0};", newv));
+                        AddLine(string.Format("{3} = {0} {1} {2};", v2.cName, t.ops[i].lexeme, v1.cName, newv));
+                        vStack.Push(new MyVariable(newv, VarType.INT));
+                    }
+                       
+                    
+                    
                 }
             }
         }
@@ -213,7 +230,7 @@ namespace MiniPLCompiler
                 else
                 {
                     string newName = GetNewVarName();
-                    AddLine(string.Format("char *{0} = {1};",newName, fac.literal.lexeme));
+                    AddLine(string.Format("char *{0} = \"{1}\";",newName, fac.literal.lexeme));
                     vStack.Push(new MyVariable(newName, fac.ty));
 
                 }
@@ -226,43 +243,35 @@ namespace MiniPLCompiler
             {
                 fac.expr.AcceptExe(this);
             }
+            // variable
             else if (fac.variable != null)
             {
-                fac.variable.AcceptExe(this);
+                //fac.variable.AcceptExe(this);
                 // arr[index]
                 if (fac.variable.expr != null)
                 {
+                    fac.variable.expr.AcceptExe(this);
                     var ind = vStack.Pop();
-                    string newv = GetNewVarName();
                     string arrName = GetVar(fac.variable.iden.lexeme);
-                    // declare
-                    string newtype = cTypeName[fac.ty]; // TODO: check if all new vars are declared (can write a helper function to do this)
-                    if (fac.ty == VarType.STR || fac.ty == VarType.STR_ARR)
-                        newtype = "char *";
-                    AddLine(string.Format("{0} {1};", newtype, newv));
+                    string refName = "";
                     // if by ref
                     if (byRefVars.Contains(arrName))
-                        AddLine(string.Format("{0} = *{1}[{2}];", newv, arrName, ind.cName));
+                        refName = string.Format("*{0}[{1}]", arrName, ind.cName);
                     else
-                        AddLine(string.Format("{0} = {1}[{2}];", newv, arrName, ind.cName));
-                    vStack.Push(new MyVariable(newv, fac.ty));
+                        refName = string.Format("{0}[{1}]", arrName, ind.cName);
+                    vStack.Push(new MyVariable(refName, fac.ty));
                 }
-                // simple type variable
+                // variable
                 else
                 {
-                    string newv = GetNewVarName();
                     string vname = GetVar(fac.variable.iden.lexeme);
-                    // declare
-                    string newtype = cTypeName[fac.ty];
-                    if (fac.ty == VarType.STR || fac.ty == VarType.STR_ARR)
-                        newtype = "char *";
-                    AddLine(string.Format("{0} {1};", newtype, newv));
+                    string refName = "";
                     // if by ref
                     if (byRefVars.Contains(vname))
-                        AddLine(string.Format("{0} = *{1};", newv, vname));
+                        refName = string.Format("*{0}", vname);
                     else
-                        AddLine(string.Format("{0} = {1};", newv, vname));
-                    vStack.Push(new MyVariable(newv, fac.ty));
+                        refName = string.Format("{0}", vname);
+                    vStack.Push(new MyVariable(refName, fac.ty));
                 }
 
             }
@@ -279,7 +288,12 @@ namespace MiniPLCompiler
             {
                 var v = vStack.Pop();
                 string newvname = GetNewVarName();
-                AddLine(string.Format("int {0} = {1}.size;", newvname, v.cName));
+                string newvname2 = GetNewVarName();
+                // sizeof(a)/sizeof(a[0])
+                AddLine(string.Format("int {0}, {1};", newvname, newvname2));
+                AddLine(string.Format("{0} = sizeof({1});", newvname, v.cName));
+                AddLine(string.Format("{0} = sizeof({1}[0]);", newvname2, v.cName));
+                AddLine(string.Format("{0} = {0} / {1};", newvname, newvname2));
                 vStack.Push(new MyVariable(newvname, VarType.INT));
             }
         }
@@ -292,8 +306,10 @@ namespace MiniPLCompiler
             if (se.sign != null)
             {
                 var v = vStack.Pop();
-                AddLine(string.Format("{0} = {1}{0};", v.cName, se.sign.lexeme));
-                vStack.Push(v);
+                string newv = GetNewVarName();
+                AddLine(string.Format("{0} {1};", cTypeName[v.ty], newv));
+                AddLine(string.Format("{2} = {1}{0};", v.cName, se.sign.lexeme, newv));
+                vStack.Push(new MyVariable(newv, v.ty));
             }
 
             for (int i = 0; i < se.terms.Count; i++)
@@ -305,16 +321,31 @@ namespace MiniPLCompiler
                 {
                     var v1 = vStack.Pop();
                     var v2 = vStack.Pop();
-                    AddLine(string.Format("{0} = {0} | {1};", v1.cName, v2.cName));
-                    vStack.Push(v1);
+                    string newv = GetNewVarName();
+                    AddLine(string.Format("int {0};", newv));
+                    AddLine(string.Format("{2} = {0} | {1};", v1.cName, v2.cName, newv));
+                    vStack.Push(new MyVariable(newv, VarType.BOOL));
                 }
                 // -
                 else if (se.ops[i].lexeme == "-")
                 {
                     var v1 = vStack.Pop();
                     var v2 = vStack.Pop();
-                    AddLine(string.Format("{0} = {0} - {1}", v2.cName, v1.cName));
-                    vStack.Push(v2);
+                    string newv = GetNewVarName();
+                    if (v1.ty == VarType.REAL || v2.ty == VarType.REAL)
+                    {
+                        AddLine(string.Format("float {0};", newv));
+                        AddLine(string.Format("{2} = {0} - {1};", v2.cName, v1.cName, newv));
+                        vStack.Push(new MyVariable(newv, VarType.REAL));
+                    }
+                    else
+                    {
+                        AddLine(string.Format("int {0};", newv));
+                        AddLine(string.Format("{2} = {0} - {1};", v2.cName, v1.cName, newv));
+                        vStack.Push(new MyVariable(newv, VarType.INT));
+                    }
+                    
+                   
                 }
                 // +
                 else if (se.ops[i].lexeme == "+")
@@ -343,8 +374,19 @@ namespace MiniPLCompiler
                     {
                         var v1 = vStack.Pop();
                         var v2 = vStack.Pop();
-                        AddLine(string.Format("{0} = {0} + {1}", v2.cName, v1.cName));
-                        vStack.Push(v2);
+                        string newv = GetNewVarName();
+                        if (v1.ty == VarType.REAL || v2.ty == VarType.REAL)
+                        {
+                            AddLine(string.Format("float {0};", newv));
+                            AddLine(string.Format("{2} = {0} + {1};", v2.cName, v1.cName, newv));
+                            vStack.Push(new MyVariable(newv, VarType.REAL));
+                        }
+                        else
+                        {
+                            AddLine(string.Format("int {0};", newv));
+                            AddLine(string.Format("{2} = {0} + {1};", v2.cName, v1.cName, newv));
+                            vStack.Push(new MyVariable(newv, VarType.INT));
+                        }
                     }
                 }
             }
@@ -436,10 +478,12 @@ namespace MiniPLCompiler
         public void ExeVariable(Variable v)
         {
             // arr[index]
+            /*
             if (v.expr != null)
             {
                 v.expr.AcceptExe(this); // in stack
             }
+            */
             // doing anything to variable (assign/use) is other one's duty
         }
 
@@ -456,7 +500,7 @@ namespace MiniPLCompiler
         {
             // C will do the dynamic casting (int->float, float->int)
             a.expression.AcceptExe(this);
-            a.variable.AcceptExe(this);
+            //a.variable.AcceptExe(this);
             // not arr
             if (a.variable.expr == null)
             {
@@ -471,6 +515,7 @@ namespace MiniPLCompiler
             // arr
             else
             {
+                a.variable.expr.AcceptExe(this);
                 // stack pop is index
                 var ind = vStack.Pop();
                 var val = vStack.Pop();
@@ -517,9 +562,9 @@ namespace MiniPLCompiler
                     res += "%s ";
             }
             if (res.Length > 0)
-                res.Remove(res.Length - 1); // delete space
+                res = res.Remove(res.Length - 1); // delete space
             if (argstr.Length > 0)
-                argstr.Remove(argstr.Length - 1);   // delete ,
+                argstr = argstr.Remove(argstr.Length - 1);   // delete ,
             AddLine(string.Format("printf(\"{0}\\n\", {1});", res, argstr));
         }
 
@@ -529,7 +574,7 @@ namespace MiniPLCompiler
         {
             foreach(var v in r.vars)
             {
-                v.AcceptExe(this);
+                //v.AcceptExe(this);
                 // if by ref
                 string refStr = "";
                 if (byRefVars.Contains(GetVar(v.iden.lexeme)))
@@ -541,21 +586,21 @@ namespace MiniPLCompiler
                     v.expr.AcceptExe(this);
                     var ind = vStack.Pop();
                     if (v.ty == VarType.INT || v.ty == VarType.BOOL)
-                        AddLine(string.Format("scanf(\"%d\", {2}{0}[{1}]);", GetVar(v.iden.lexeme), ind.cName, refStr));
+                        AddLine(string.Format("scanf(\"%d\", &{2}{0}[{1}]);", GetVar(v.iden.lexeme), ind.cName, refStr));
                     else if (v.ty == VarType.STR)
-                        AddLine(string.Format("scanf(\"%s\", {2}{0}[{1}]);", GetVar(v.iden.lexeme), ind.cName, refStr));
+                        AddLine(string.Format("scanf(\"%s\", &{2}{0}[{1}]);", GetVar(v.iden.lexeme), ind.cName, refStr));
                     else
-                        AddLine(string.Format("scanf(\"%f\", {2}{0}[{1}]);", GetVar(v.iden.lexeme), ind.cName, refStr));
+                        AddLine(string.Format("scanf(\"%f\", &{2}{0}[{1}]);", GetVar(v.iden.lexeme), ind.cName, refStr));
                 }
                 // simple
                 else
                 {
                     if (v.ty == VarType.INT || v.ty == VarType.BOOL)
-                        AddLine(string.Format("scanf(\"%d\", {1}{0});", GetVar(v.iden.lexeme), refStr));
+                        AddLine(string.Format("scanf(\"%d\", &{1}{0});", GetVar(v.iden.lexeme), refStr));
                     else if (v.ty == VarType.STR)
-                        AddLine(string.Format("scanf(\"%s\", {1}{0});", GetVar(v.iden.lexeme), refStr));
+                        AddLine(string.Format("scanf(\"%s\", &{1}{0});", GetVar(v.iden.lexeme), refStr));
                     else
-                        AddLine(string.Format("scanf(\"%f\", {1}{0});", GetVar(v.iden.lexeme), refStr));
+                        AddLine(string.Format("scanf(\"%f\", &{1}{0});", GetVar(v.iden.lexeme), refStr));
                 }
             }
         }
@@ -565,14 +610,16 @@ namespace MiniPLCompiler
         {
             stat.args.AcceptExe(this);
             List<MyVariable> myArgs = new List<MyVariable>();
-            while (vStack.Count > 0)
+            Func f = functions[stat.iden.lexeme];
+            int argNum = f.parameters.parameters.Count;
+            for (int j = 0; j < argNum; j++)
             {
                 myArgs.Insert(0, vStack.Pop());
             }
 
             string argstr = "";
-            Func f = functions[stat.iden.lexeme];
-            for (int i = 0; i < myArgs.Count; i++)
+            
+            for (int i = 0; i < argNum; i++)
             {
                 // check if by ref
                 Param p = f.parameters.parameters[i];
@@ -582,9 +629,44 @@ namespace MiniPLCompiler
                     argstr += myArgs[i].cName + ",";
             }
             if (argstr.Length > 0)
-                argstr.Remove(argstr.Length - 1);   // delete ,
+                argstr = argstr.Remove(argstr.Length - 1);   // delete ,
 
-            AddLine(string.Format("{0}({1});", stat.iden.lexeme, argstr));
+            
+            if (!f.isFunc)
+                AddLine(string.Format("{0}({1});", stat.iden.lexeme, argstr));
+            else
+            {
+                // func return value
+                string returnv = GetNewVarName();
+                if (f.ty == VarType.STR)
+                    AddLine(string.Format("char *{0};", returnv));
+                else if (f.ty == VarType.INT || f.ty == VarType.REAL || f.ty == VarType.BOOL)
+                    AddLine(string.Format("{0} {1};", cTypeName[f.ty], returnv));
+                else
+                {
+                    // []
+                    if (f.returnedType.expr == null)
+                    {
+                        if (f.ty == VarType.STR_ARR)
+                            AddLine(string.Format("char *{0}[];", returnv));
+                        else
+                            AddLine(string.Format("{0} {1}[];", cTypeName[f.ty], returnv));
+                    }
+                    // [expr]
+                    else
+                    {
+                        f.returnedType.expr.AcceptExe(this);
+                        var arrSize = vStack.Pop();
+                        if (f.ty == VarType.STR_ARR)
+                            AddLine(string.Format("char *{0}[{1}];", returnv, arrSize.cName));
+                        else
+                            AddLine(string.Format("{0} {1}[{2}];", cTypeName[f.ty], returnv, arrSize.cName));
+                    }
+                }
+
+                AddLine(string.Format("{0} = {1}({2});", returnv, stat.iden.lexeme, argstr));
+                vStack.Push(new MyVariable(returnv, f.returnedType.ty));
+            }
         }
 
         // simple statement
@@ -630,11 +712,11 @@ namespace MiniPLCompiler
         // L2: continue
         public void ExeWhileStat(WhileStat stat)
         {
-            stat.expr.AcceptExe(this);
             string negvar = GetNewVarName();
             AddLine(string.Format("int {0};", negvar));
             string L1 = GetNewFlagName();
             AddLine(string.Format("{0}:", L1));
+            stat.expr.AcceptExe(this);
             var condition = vStack.Pop();
             AddLine(string.Format("{0} = !{1};", negvar, condition.cName));
             string L2 = GetNewFlagName();
@@ -721,7 +803,10 @@ namespace MiniPLCompiler
                 string currentp;
                 string star = "";
                 if (p.byRef)
+                {
                     star = "*";
+                    byRefVars.Add(p.iden.lexeme);
+                }
                 p.pltype.AcceptExe(this);
                 // array
                 if (p.pltype.isArray)
@@ -767,10 +852,10 @@ namespace MiniPLCompiler
                 pStr += s + ",";
             }
             if (pStr.Length > 0)
-                pStr.Remove(pStr.Length - 1);   // remove extrea ,
+                pStr = pStr.Remove(pStr.Length - 1);   // remove extra ,
 
             // finally, really define a function
-            AddLine(string.Format("{0} {1}({2})}}", funcTypeStr, f.iden.lexeme, pStr));
+            AddLine(string.Format("{0} {1}({2}){{", funcTypeStr, f.iden.lexeme, pStr));
 
             // enter block
             ExeBlock(f.block, true);
@@ -812,7 +897,7 @@ namespace MiniPLCompiler
             // main block
             AddLine("int main() {");
             pro.mainBlock.AcceptExe(this);
-            AddLine("\treturn 0;");
+            AddLine("return 0;");
             AddLine("}");
         }
 

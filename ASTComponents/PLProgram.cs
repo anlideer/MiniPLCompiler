@@ -30,7 +30,7 @@ namespace MiniPLCompiler.ASTComponents
             if (currentToken.type == TokenType.PROGRAM)
             {
                 // id
-                currentToken = scanner.PullOneToken();
+                 currentToken = scanner.PullOneToken();
                 if (currentToken.type == TokenType.IDENTIFIER)
                 {
                     iden = currentToken;
@@ -74,6 +74,8 @@ namespace MiniPLCompiler.ASTComponents
                         funcs.Add(func);
                     }
                 }
+                currentToken = scanner.PullOneToken();
+
             }
             scanner.PushOneToken(currentToken);
 

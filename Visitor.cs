@@ -147,7 +147,7 @@ namespace MiniPLCompiler
         }
 
         // visit argument
-        public void VisitAruguments(Arguments a)
+        public void VisitArguments(Arguments a)
         {
             foreach(var expr in a.exprs)
             {
@@ -351,14 +351,18 @@ namespace MiniPLCompiler
         public void VisitPLType(PLType plt)
         {
             plt.ty = typeMap[plt.pltype.type];
-            if (plt.expr != null)
+            if (plt.isArray)
             {
-                // integer expr
-                plt.expr.Accept(this);
-                if (plt.expr.ty != VarType.INT)
+                if (plt.expr != null)
                 {
-                    ErrorHandler.PushError(new MyError(plt.pltype.lexeme, plt.pltype.lineNum, "The expression should be integer type."));
+                    // integer expr
+                    plt.expr.Accept(this);
+                    if (plt.expr.ty != VarType.INT)
+                    {
+                        ErrorHandler.PushError(new MyError(plt.pltype.lexeme, plt.pltype.lineNum, "The expression should be integer type."));
+                    }
                 }
+
                 plt.ty = simpleTypesToArr[plt.ty];
             }
         }
@@ -430,7 +434,7 @@ namespace MiniPLCompiler
                 if (ty == VarType.NONE)
                     ErrorHandler.PushError(new MyError(v.iden.lexeme, v.iden.lineNum, "Variable must be declared before use"));
                 // type check
-                else if (arrTypesToSimp.ContainsKey(ty))
+                else if (arrTypesToSimp.ContainsKey(ty) && v.expr == null)
                     ErrorHandler.PushError(new MyError(v.iden.lexeme, v.iden.lineNum, "Read statement does not accept array type variable. Only simple types."));
 
                 // record init
@@ -496,32 +500,33 @@ namespace MiniPLCompiler
             // check type (bool expr)
             if (w.expr.ty != VarType.BOOL)
                 ErrorHandler.PushError(new MyError(w.whileToken.lexeme, w.whileToken.lineNum, "while's condition expression must be boolean type."));
+
+            // require return after while
+            funcReturned = false;
         }
 
         // visit if statement
         public void VisitIf(IfStat stat)
         {
-            if (funcReturned)   // dead codes
+            if (funcReturned)   // dead codes, ignore return check
             {
                 stat.expr.Accept(this);
                 stat.thenStat.Accept(this);
                 if (stat.elseStat != null)
                     stat.elseStat.Accept(this);
             }
-            else
+            else // funcReturned = false
             {
-                funcReturned = false;
                 stat.expr.Accept(this);
-                bool ifReturned = funcReturned; // if any of the statement does not return, then as a whole they don't return (not every branch returns)
-                funcReturned = false;
                 stat.thenStat.Accept(this);
-                bool thenReturned = funcReturned;
+                bool ifReturned = funcReturned;
                 if (stat.elseStat != null)
                 {
                     funcReturned = false;
                     stat.elseStat.Accept(this);
                 }
-                if (!ifReturned || !thenReturned || !funcReturned)
+                // if and else has to both return, or return later
+                if (!ifReturned  || !funcReturned)
                     funcReturned = false;
             }
 
@@ -560,9 +565,6 @@ namespace MiniPLCompiler
         // visit function
         public void VisitFunction(Func f)
         {
-            // record id
-            functions[f.iden.lexeme] = f;
-
             EnterScope();
             // visit
             f.parameters.Accept(this);
@@ -631,6 +633,8 @@ namespace MiniPLCompiler
         // visit program
         public void VisitProgram(PLProgram p)
         {
+            foreach (Func f in p.funcs)
+                functions[f.iden.lexeme] = f;
             foreach (Func f in p.funcs)
                 f.Accept(this);
             p.mainBlock.Accept(this);

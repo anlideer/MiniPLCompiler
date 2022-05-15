@@ -24,7 +24,7 @@ namespace MiniPLCompiler
                     t = scanner.PullOneToken();
                 }
 
-                scanner = new Scanner(Path.Combine("..", "..", "..", "TestData", "Example2.pas"));
+                scanner = new Scanner(Path.Combine("..", "..", "..", "TestData", "Example1.pas"));
                 Parser parser = new Parser(scanner);
                 PLProgram pro = parser.BuildAST();
                 Visitor visitor = new Visitor();

@@ -12,7 +12,7 @@ namespace MiniPLCompiler.ASTComponents
 
         public override void Accept(Visitor visitor)
         {
-            visitor.VisitAruguments(this);
+            visitor.VisitArguments(this);
         }
 
         public override void AcceptExe(SimpleInterpreter interpreter)
@@ -58,7 +58,7 @@ namespace MiniPLCompiler.ASTComponents
                         ErrorHandler.PushError(new MyError(currentToken.lexeme, currentToken.lineNum, "Expect an expression after ,"));
                         return null;
                     }
-
+                    exprs.Add(tmp2);
                     currentToken = scanner.PullOneToken();
                 }
                 scanner.PushOneToken(currentToken);

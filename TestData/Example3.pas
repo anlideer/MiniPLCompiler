@@ -4,7 +4,7 @@ begin
 var i, sum : integer;
 i := 0; sum := 0;
 while i < data.size do begin
-sum = sum + data [i]; i := i + 1;
+sum := sum + data [i]; i := i + 1;
 end;
 return sum;
 end;
@@ -12,7 +12,8 @@ end;
 procedure Swap (var i : integer, var j : integer);
 begin
 var tmp : integer;
-tmp = i; i := j; j := tmp;
+tmp := i; i := j; j := tmp;
+return;
 end;
 
 begin
